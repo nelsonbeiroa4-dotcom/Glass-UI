@@ -1,4 +1,4 @@
-# Feature status — 0.2.1
+# Feature status — 0.2.3
 
 This file is the source of truth for what the current public distribution actually includes. An API name in an old script or in the Obsidian reference does not imply that Glass UI implements the same behavior.
 
@@ -20,7 +20,6 @@ This file is the source of truth for what the current public distribution actual
 
 ## Simplified implementations
 
-- Background blur is a Lighting effect and applies to the 3D scene globally while the window is visible; it is not an isolated per-window blur.
 - Search is substring-based. It is not Obsidian's fuzzy/global search engine.
 - Floating menus and context menus are basic action surfaces, not a full replacement for Obsidian's pop-out and context-menu lifecycle.
 - The color picker has hex editing and hue selection; it does not yet have a full saturation/value plane or alpha bar.
@@ -30,7 +29,7 @@ This file is the source of truth for what the current public distribution actual
 - Dependency boxes support direct expected-value checks. Complex dependency graphs and every edge case from Obsidian are not reproduced.
 - Groupbox content uses a two-column layout with a simple collapse interaction; resizing and automatic pop-out behavior are not implemented.
 - Theme controls cover the principal colors and presets. Font-face, background image, transparency and contrast tooling are not yet integrated into the theme editor.
-- The UI uses translucent surfaces and gradients to simulate glass. There is no per-window blur.
+- The UI uses translucent surfaces, tint and gradients to simulate frosted glass. A clipped live backdrop blur is unavailable through the standard Roblox GUI API; the library intentionally avoids Lighting.BlurEffect because it affects the entire 3D scene.
 
 ## Not implemented yet
 

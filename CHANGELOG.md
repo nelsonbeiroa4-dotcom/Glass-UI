@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+- Removed the global Lighting BlurEffect introduced in 0.2.2.
+- Kept the glass appearance local to the library window using tinted translucency and gradients.
+- Documented the Roblox limitation around per-window live backdrop blur.
+
 ## 0.2.2
 
 - Added a real Lighting BlurEffect behind the UI while the window is visible.

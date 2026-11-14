@@ -13,8 +13,6 @@ local Window = Library:CreateWindow({
     Footer = "Glass UI • Example build",
     Size = UDim2.fromOffset(780, 560),
     AutoShow = true,
-    Blur = true,
-    BlurSize = 18,
     ToggleKeybind = Enum.KeyCode.RightControl,
 })
 

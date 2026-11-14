@@ -30,9 +30,9 @@ Group:AddButton("Notify", function()
     Library:Notify("Glass UI is ready.", 3)
 end)
 
-## Features in 0.2.2
+## Features in 0.2.3
 
-- Draggable, resizable window with a compactable sidebar and animated 3D background blur
+- Draggable, resizable window with a compactable sidebar
 - Tabs, key tabs, left/right groupboxes and nested tabboxes
 - In-window text search
 - Buttons, toggles, checkboxes, inputs, sliders and dropdowns
@@ -63,7 +63,7 @@ Compatibility is best-effort. Executors can expose different functions, restrict
 
 ## Performance and visual design
 
-The core does not run a permanent RenderStepped loop. It uses shared input listeners, short tweens and on-demand theme updates. Translucency, gradients and outlines provide the glass effect without a continuous screen blur.
+The core does not run a permanent RenderStepped loop. It uses shared input listeners, short tweens and on-demand theme updates. Translucency, gradients and outlines provide a frosted-glass appearance. The library does not apply a global Lighting blur.
 
 ## Status
 

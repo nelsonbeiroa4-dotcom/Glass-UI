@@ -23,9 +23,9 @@ No library can guarantee compatibility with every executor. Executors may omit f
 
 When filesystem functions are missing, SaveManager retains configuration JSON in session memory. ExportJSON and ImportJSON remain usable. In-memory configs disappear when the script or session ends.
 
-## Background blur
+## Local backdrop blur
 
-The window creates its own Lighting BlurEffect and animates its Size when the window opens or closes. This blurs the 3D scene behind the GUI; it does not blur other ScreenGui content. The effect is removed by Library:Unload(). Games or environments that disable post-processing may prevent it from appearing.
+Roblox does not provide a CSS-style backdrop-filter for an individual ScreenGui or GuiObject. BlurEffect is parented to Lighting and therefore blurs the whole 3D scene, not only the pixels behind one window. Glass UI deliberately does not create a BlurEffect, because doing so would blur the entire game. Its glass appearance is built from translucent surfaces, tint, gradients and outlines. A true clipped live-scene blur would require a separate rendering/capture pipeline that the standard GUI API does not expose.
 
 ## Performance
 
