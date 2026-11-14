@@ -40,7 +40,7 @@ end)
 - Labels, dividers and dependency boxes
 - Image, viewport, video and UI passthrough controls
 - Notifications, dialogs, loading panels and watermarks
-- SaveManager with config list, import/export and autoload
+- SaveManager with config list, import/export, subfolders and autoload
 - ThemeManager with built-in and custom palettes
 - Optional executor capability detection and PlayerGui fallback
 - Explicit cleanup through Library:Unload()

@@ -21,17 +21,19 @@ This file is the source of truth for what the current public distribution actual
 ## Simplified implementations
 
 - Search is substring-based. It is not Obsidian's fuzzy/global search engine.
+- Floating menus and context menus are basic action surfaces, not a full replacement for Obsidian's pop-out and context-menu lifecycle.
 - The color picker has hex editing and hue selection; it does not yet have a full saturation/value plane or alpha bar.
 - Key pickers support one key and basic Always, Toggle and Hold modes. Modifier combinations, blacklists, whitelists, Press mode and the full keybind menu are not included.
 - Notifications support title, description and duration. Persistent cards, progress steps, icons, audio and advanced positioning are not included.
 - Loading is a compact progress card. It does not reproduce Obsidian's multi-page loader/sidebar.
 - Dependency boxes support direct expected-value checks. Complex dependency graphs and every edge case from Obsidian are not reproduced.
+- Groupbox content uses a two-column layout with a simple collapse interaction; resizing and automatic pop-out behavior are not implemented.
 - Theme controls cover the principal colors and presets. Font-face, background image, transparency and contrast tooling are not yet integrated into the theme editor.
 - The UI uses translucent surfaces and gradients to simulate glass. There is no per-window blur.
 
 ## Not implemented yet
 
-- Context menus and detached/pop-out groupboxes
+- Detached/pop-out groupboxes and full context-menu placement/dismissal parity
 - Full sidebar resize, compact-threshold logic and window snapping
 - Advanced animation settings and swipe transitions
 - Search result ranking, fuzzy matching and global-search preferences

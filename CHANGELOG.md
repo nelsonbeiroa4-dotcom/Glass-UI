@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed vertical layout for controls containing more than one child.
+- Fixed controls added inside nested tab pages.
+- Added drag support for floating text and image buttons.
+- Made autoload files respect the selected configuration subfolder.
+
 ## 0.2.0
 
 - Added an in-window control search field.
