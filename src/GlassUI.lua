@@ -295,6 +295,7 @@ function Group:AddButton(first, second)
     function item:SetText(value) self.Text = tostring(value); button.Text = self.Text end
     function item:AddKeyPicker(index, data) return self.Parent:AddKeyPicker(index, data, box) end
     function item:SetVisible(value) box.Visible = value == true end
+    function item:AddButton(label, callback) return self.Parent:AddButton(label, callback) end
     function item:Destroy() box:Destroy() end
     self:Resize()
     return item
@@ -778,6 +779,7 @@ function Library:CreateWindow(info)
     local footer = text(main, info.Footer or "Glass UI  •  0.2.0", 10, Colors.MutedColor)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
     local window = setmetatable({ Main = main, Sidebar = sidebar, PageHost = pageHost, TitleLabel = title, FooterLabel = footer, Tabs = {}, ActiveTab = nil, BackgroundImage = create("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 0.8, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 0 }, main) }, Window)
+    window.UIScale = create("UIScale", { Scale = Library.DPIScale or 1 }, main)
     Library.Window = window
     window.SearchBox = search
     search:GetPropertyChangedSignal("Text"):Connect(function() Library:UpdateSearch(search.Text) end)
@@ -990,6 +992,112 @@ function Library:AddTooltip(info, disabledInfo, target)
     return item
 end
 
+
+function Library:AddContextMenu(target, items)
+    if not Library.ScreenGui then return nil end
+    local menu = glass(Library.ScreenGui, UDim2.fromOffset(180, 0), 8)
+    menu.AutomaticSize = Enum.AutomaticSize.Y
+    menu.ZIndex = 350
+    local mouse = UserInputService:GetMouseLocation()
+    menu.Position = UDim2.fromOffset(mouse.X, mouse.Y)
+    vertical(menu, 3)
+    for _, entry in ipairs(items or {}) do
+        local data = type(entry) == "table" and entry or { Name = tostring(entry) }
+        local button = create("TextButton", {
+            AutoButtonColor = false,
+            Text = data.Name or data.Title or "Action",
+            TextColor3 = data.Destructive and Colors.DangerColor or Colors.FontColor,
+            TextSize = 12,
+            Font = Enum.Font.GothamMedium,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, 28),
+            ZIndex = 351,
+        }, menu)
+        button.MouseButton1Click:Connect(function()
+            safe(data.Callback, target)
+            menu:Destroy()
+        end)
+    end
+    local object = { Frame = menu }
+    function object:Destroy() if menu.Parent then menu:Destroy() end end
+    function object:SetVisible(value) menu.Visible = value == true end
+    return object
+end
+
+function Library:AddDraggableMenu(name)
+    if not Library.ScreenGui then return nil end
+    local frame = glass(Library.ScreenGui, UDim2.fromOffset(210, 190), 10)
+    frame.Position = UDim2.fromOffset(16, 110)
+    frame.ZIndex = 160
+    local header = create("TextButton", {
+        AutoButtonColor = false, Text = tostring(name or "Menu"),
+        TextColor3 = Colors.FontColor, TextSize = 12, Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1,
+        Size = UDim2.new(1, -16, 0, 30), Position = UDim2.fromOffset(8, 0),
+        ZIndex = 161,
+    }, frame)
+    local body = create("Frame", {
+        BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 34),
+        Size = UDim2.new(1, -16, 1, -42), ZIndex = 161,
+    }, frame)
+    vertical(body, 5)
+    local dragging, start, origin = false, nil, nil
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; start = input.Position; origin = frame.Position
+        end
+    end)
+    connect(UserInputService.InputChanged, function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - start
+            frame.Position = UDim2.new(origin.X.Scale, origin.X.Offset + delta.X, origin.Y.Scale, origin.Y.Offset + delta.Y)
+        end
+    end)
+    connect(UserInputService.InputEnded, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+    return frame, body
+end
+
+function Library:AddDraggableImageButton(image, callback)
+    if not Library.ScreenGui then return nil end
+    local button = create("ImageButton", {
+        AutoButtonColor = false, BackgroundColor3 = Colors.SurfaceColor,
+        BackgroundTransparency = 0.1, Image = tostring(image or ""),
+        ImageColor3 = Colors.FontColor, Position = UDim2.fromOffset(16, 64),
+        Size = UDim2.fromOffset(34, 34),
+    }, Library.ScreenGui)
+    round(button, 8); outline(button, 0.72)
+    button.MouseButton1Click:Connect(function() safe(callback) end)
+    local dragging, start, origin = false, nil, nil
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            start = input.Position; origin = button.Position
+        end
+    end)
+    return {
+        Button = button,
+        SetVisible = function(_, value) button.Visible = value == true end,
+        SetImage = function(_, value) button.Image = tostring(value) end,
+        Destroy = function() button:Destroy() end,
+    }
+end
+
+function Library:SetDPIScale(percent)
+    local value = math.clamp(tonumber(percent) or 100, 50, 150) / 100
+    Library.DPIScale = value
+    if Library.Window and Library.Window.UIScale then Library.Window.UIScale.Scale = value end
+end
+
+function Library:UpdateColorsUsingRegistry()
+    for _, binding in ipairs(Library.ThemeBindings) do
+        if binding.Object and binding.Object.Parent then
+            pcall(function() binding.Object[binding.Property] = Colors[binding.Key] end)
+        end
+    end
+end
+
 function Library:CreateLoading(info)
     info = info or {}
     if not Library.ScreenGui then return nil end
@@ -1001,7 +1109,7 @@ function Library:CreateLoading(info)
     local bar = create("Frame", { BackgroundColor3 = Colors.PanelColor, Position = UDim2.fromOffset(15, 78), Size = UDim2.new(1, -30, 0, 8), ZIndex = 252 }, card); round(bar, 8)
     local fill = create("Frame", { BackgroundColor3 = Colors.AccentColor, Size = UDim2.new(0, 0, 1, 0), ZIndex = 253 }, bar); round(fill, 8)
     local loading = { CurrentStep = 0, TotalSteps = info.TotalSteps or 100 }
-    function loading:SetProgress(value) tween(fill, 0.14, { Size = UDim2.new(math.clamp(value / 100, 0, 1), 0, 1, 0) }) end
+    function loading:SetProgress(value) tween(fill, 0.14, { Size = UDim2.new(math.clamp(tonumber(value) or 0, 0, 100) / 100, 0, 1, 0) }) end
     function loading:SetStep(step, total) self.CurrentStep = step; self.TotalSteps = total or self.TotalSteps; self:SetProgress(step / math.max(self.TotalSteps, 1) * 100) end
     function loading:SetMessage(value) desc.Text = tostring(value) end
     function loading:SetTitle(value) title.Text = tostring(value) end
