@@ -1,6 +1,6 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.2.6
+-- Version: 0.2.7
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -124,7 +124,7 @@ local Colors: {[string]: any} = {
 }
 
 local Library: {[string]: any} = {
-    Name = "Glass UI", Version = "0.2.6", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.7", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -1528,7 +1528,14 @@ function ThemeManager:ApplyThemeData(data)
     for key, value in pairs(data) do
         if Colors[key] then
             if typeof(value) == "Color3" then colors[key] = value
-            elseif type(value) == "string" then local ok, color = pcall(Color3.fromHex, value:gsub("#", "")); if ok then colors[key] = color end end
+            elseif type(value) == "string" then
+                local hex = value:gsub("#", "")
+                local ok, color = pcall(function()
+                    return Color3.fromHex(hex)
+                end)
+                if ok then colors[key] = color end
+            end
+        end
         end
     end
     Library:SetTheme(colors)

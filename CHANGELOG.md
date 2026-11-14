@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7
+
+- Fixed the final Luau pcall argument-count diagnostic: string.gsub returns two values, so hex-color loading now calls Color3.fromHex inside a protected closure.
+- Kept src and dist synchronized.
+
 ## 0.2.6
 
 - Converted the remaining multi-argument pcall calls in autoload and theme JSON loading to closures.
