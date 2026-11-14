@@ -158,8 +158,24 @@ local function parentGui(screen)
 end
 
 function Library:SetTheme(theme)
+    local previous = {}
+    for key, value in pairs(Colors) do previous[key] = value end
     for key, value in pairs(theme or {}) do
         if Colors[key] and typeof(value) == "Color3" then Colors[key] = value end
+    end
+    if Library.ScreenGui then
+        for _, object in ipairs(Library.ScreenGui:GetDescendants()) do
+            for key, oldColor in pairs(previous) do
+                local newColor = Colors[key]
+                if newColor and oldColor ~= newColor then
+                    for _, property in ipairs({ "BackgroundColor3", "TextColor3", "ImageColor3", "Color" }) do
+                        pcall(function()
+                            if object[property] == oldColor then object[property] = newColor end
+                        end)
+                    end
+                end
+            end
+        end
     end
     for index = #Library.ThemeBindings, 1, -1 do
         local binding = Library.ThemeBindings[index]
@@ -687,7 +703,7 @@ function Window:Toggle(value)
 end
 function Window:SetTitle(value) self.TitleLabel.Text = tostring(value) end
 function Window:SetFooter(value) self.FooterLabel.Text = tostring(value) end
-function Window:SetBackgroundImage(asset) self.BackgroundImage.Image = tostring(asset) end
+function Window:SetBackgroundImage(asset) self.BackgroundImage.Image = tostring(asset); self.BackgroundImage.Visible = asset ~= nil and tostring(asset) ~= "" end
 function Window:RefreshTheme()
     self.Main.BackgroundColor3 = Colors.BackgroundColor
     self.TitleLabel.TextColor3 = Colors.FontColor
@@ -826,9 +842,14 @@ function Library:CreateWatermark(info)
     function watermark:SetVisible(value) frame.Visible = value == true end
     function watermark:SetPosition(value) frame.Position = value end
     function watermark:Destroy() frame:Destroy() end
+    if not Library.DefaultWatermark then Library.DefaultWatermark = watermark end
     return watermark
 end
-function Library:AddDraggableLabel(value) return Library:CreateWatermark({ Text = value, Visible = true }) end
+function Library:AddDraggableLabel(value)
+    local watermark = Library:CreateWatermark({ Text = value, Visible = true })
+    Library.DefaultWatermark = watermark
+    return watermark
+end
 
 
 function Library:SetNotifySide(side)
@@ -924,17 +945,17 @@ connect(UserInputService.InputEnded, function(input)
 end)
 
 -- SaveManager stores indexed control values as JSON. Filesystem APIs are optional.
-local SaveManager = { Library = Library, Folder = "GlassUI/Configs", Ignore = {}, Memory = {}, AutoloadConfig = nil }
+local SaveManager = { Library = Library, Folder = "GlassUI/Configs", SubFolder = "", Ignore = {}, Memory = {}, AutoloadConfig = nil }
 local function safeName(name) return tostring(name or ""):gsub("[^%w%-%_ ]", "_"):gsub("^%s+", ""):gsub("%s+$", "") end
 local function canWrite() return type(Compat.writefile) == "function" and type(Compat.readfile) == "function" end
 function SaveManager:SetLibrary(value) self.Library = value or Library end
 function SaveManager:SetFolder(value) assert(type(value) == "string" and value ~= "", "Invalid folder"); self.Folder = value end
 function SaveManager:SetSubFolder(value) self.SubFolder = value or "" end
-function SaveManager:GetPath(name) return self.Folder .. (self.SubFolder ~= "" and "/" .. self.SubFolder or "") .. "/" .. safeName(name) .. ".json" end
+function SaveManager:GetPath(name) return self.Folder .. (self.SubFolder and self.SubFolder ~= "" and "/" .. self.SubFolder or "") .. "/" .. safeName(name) .. ".json" end
 function SaveManager:CheckFolderTree()
     if type(Compat.makefolder) ~= "function" then return false end
     local path = ""
-    for segment in string.gmatch(self.Folder .. (self.SubFolder ~= "" and "/" .. self.SubFolder or ""), "[^/]+") do
+    for segment in string.gmatch(self.Folder .. (self.SubFolder and self.SubFolder ~= "" and "/" .. self.SubFolder or ""), "[^/]+") do
         path = path == "" and segment or path .. "/" .. segment
         local exists = false
         if type(Compat.isfolder) == "function" then local ok, value = pcall(Compat.isfolder, path); exists = ok and value end
@@ -1089,6 +1110,7 @@ function ThemeManager:SaveCustomTheme(name)
     local data = self:BuildThemeData()
     self.CustomThemes[name] = data
     if canWrite() then
+        self.Library.SaveManager:CheckFolderTree()
         local path = self.Library.SaveManager.Folder .. "/Themes"
         if type(Compat.makefolder) == "function" and type(Compat.isfolder) == "function" then local ok, exists = pcall(Compat.isfolder, path); if not ok or not exists then pcall(Compat.makefolder, path) end end
         local encoded = HttpService:JSONEncode(data)
@@ -1097,11 +1119,32 @@ function ThemeManager:SaveCustomTheme(name)
     end
     return true
 end
-function ThemeManager:GetCustomTheme(name) return self.CustomThemes[name] end
+function ThemeManager:GetCustomTheme(name)
+    if self.CustomThemes[name] then return self.CustomThemes[name] end
+    if canWrite() then
+        local path = self.Library.SaveManager.Folder .. "/Themes/" .. safeName(name) .. ".json"
+        local ok, content = pcall(Compat.readfile, path)
+        if ok then
+            local decoded, data = pcall(HttpService.JSONDecode, HttpService, content)
+            if decoded and type(data) == "table" then self.CustomThemes[name] = data; return data end
+        end
+    end
+    return nil
+end
 function ThemeManager:ReloadCustomThemes()
     local names = {}
     for name in pairs(self.CustomThemes) do table.insert(names, name) end
-    table.sort(names); return names
+    if canWrite() and type(Compat.listfiles) == "function" then
+        local ok, files = pcall(Compat.listfiles, self.Library.SaveManager.Folder .. "/Themes")
+        if ok and type(files) == "table" then
+            for _, path in ipairs(files) do
+                local name = tostring(path):match("([^/\\]+)%.json$")
+                if name and not table.find(names, name) then table.insert(names, name) end
+            end
+        end
+    end
+    table.sort(names)
+    return names
 end
 function ThemeManager:Delete(name)
     self.CustomThemes[name] = nil
@@ -1114,7 +1157,7 @@ function ThemeManager:SetDefaultTheme(name)
 end
 function ThemeManager:SaveDefault(name) return self:SetDefaultTheme(name) end
 function ThemeManager:LoadDefault() return self:ApplyTheme(self.DefaultThemeName or "Violet") end
-function ThemeManager:ThemeUpdate() return Library:SetTheme(self:BuildThemeData()) end
+function ThemeManager:ThemeUpdate() return self:ApplyThemeData(self:BuildThemeData()) end
 function ThemeManager:CreateThemeManager(group)
     local names = {}
     for name in pairs(self.BuiltInThemes) do table.insert(names, name) end
