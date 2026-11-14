@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.6
+
+- Converted the remaining multi-argument pcall calls in autoload and theme JSON loading to closures.
+- Rechecked the distribution for pcall calls with more than two arguments.
+
 ## 0.2.5
 
 - Fixed Luau dynamic-table diagnostics for Library, Compat and Colors.

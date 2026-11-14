@@ -12,7 +12,7 @@ local Library = loadstring(game:HttpGet(
 
 local Window = Library:CreateWindow({
     Title = "My interface",
-    Footer = "My script • 0.2.5",
+    Footer = "My script • 0.2.6",
     Size = UDim2.fromOffset(760, 550),
     Position = UDim2.fromScale(0.5, 0.5),
     AutoShow = true,

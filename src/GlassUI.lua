@@ -1,6 +1,6 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.2.5
+-- Version: 0.2.6
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -124,7 +124,7 @@ local Colors: {[string]: any} = {
 }
 
 local Library: {[string]: any} = {
-    Name = "Glass UI", Version = "0.2.5", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.6", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -1448,7 +1448,9 @@ function SaveManager:SaveAutoloadConfig(name)
     self.AutoloadConfig = name
     if canWrite() then
         self:CheckFolderTree()
-        local ok, err = pcall(Compat.writefile, self:GetAutoloadPath(), self.AutoloadConfig)
+        local ok, err = pcall(function()
+            return Compat.writefile(self:GetAutoloadPath(), self.AutoloadConfig)
+        end)
         if not ok then return false, tostring(err) end
     end
     return true
@@ -1536,7 +1538,9 @@ function ThemeManager:ApplyTheme(name)
     local data = self.BuiltInThemes[name] or self.CustomThemes[name]
     if not data and canWrite() then
         local ok, content = pcall(Compat.readfile, self.Library.SaveManager.Folder .. "/Themes/" .. safeName(name) .. ".json")
-        if ok then local decoded, value = pcall(HttpService.JSONDecode, HttpService, content); if decoded then data = value end end
+        if ok then local decoded, value = pcall(function()
+                return HttpService:JSONDecode(content)
+            end); if decoded then data = value end end
     end
     if not data then return false, "Theme not found" end
     self.CurrentTheme = name
@@ -1570,7 +1574,9 @@ function ThemeManager:GetCustomTheme(name)
         local path = self.Library.SaveManager.Folder .. "/Themes/" .. safeName(name) .. ".json"
         local ok, content = pcall(Compat.readfile, path)
         if ok then
-            local decoded, data = pcall(HttpService.JSONDecode, HttpService, content)
+            local decoded, data = pcall(function()
+                return HttpService:JSONDecode(content)
+            end)
             if decoded and type(data) == "table" then self.CustomThemes[name] = data; return data end
         end
     end
