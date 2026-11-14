@@ -1,3 +1,10 @@
+# Glass UI
+
+## 0.2.8
+
+- Fixed an extra `end` in `ThemeManager:ApplyThemeData()` that caused `Expected <eof>, got 'end'` during Luau parsing.
+- Kept `src/GlassUI.lua` and `dist/GlassUI.lua` identical.
+
 # Changelog
 
 ## 0.2.7

@@ -124,7 +124,7 @@ local Colors: {[string]: any} = {
 }
 
 local Library: {[string]: any} = {
-    Name = "Glass UI", Version = "0.2.7", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.8", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -1535,7 +1535,6 @@ function ThemeManager:ApplyThemeData(data)
                 end)
                 if ok then colors[key] = color end
             end
-        end
         end
     end
     Library:SetTheme(colors)
