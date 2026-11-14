@@ -191,6 +191,11 @@ function Library:SetAccentColor(color, secondary)
     assert(typeof(color) == "Color3", "Color3 expected")
     Library:SetTheme({ AccentColor = color, AccentSecondary = secondary or Colors.AccentSecondary })
 end
+function Library:SetBackgroundImage(asset)
+    if Library.Window then
+        Library.Window:SetBackgroundImage(asset)
+    end
+end
 
 function Library:SetFont(font)
     if typeof(font) ~= "EnumItem" then return end
@@ -207,10 +212,12 @@ local Group = {}
 Group.__index = Group
 
 local function holder(group, height)
-    return create("Frame", {
+    local frame = create("Frame", {
         BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, height or 34),
         AutomaticSize = Enum.AutomaticSize.Y,
     }, group.Container)
+    vertical(frame, 5)
+    return frame
 end
 
 local function makeOption(group, index, kind, default, info)
@@ -250,6 +257,7 @@ end
 
 function Group:AddLabel(info, wrap)
     if type(info) ~= "table" then info = { Text = info, DoesWrap = wrap } end
+    self.Elements = self.Elements or {}
     local box = holder(self, info.DoesWrap and 36 or 20)
     local label = text(box, info.Text or "", info.Size or 13, Colors.MutedColor)
     label.TextWrapped = info.DoesWrap == true
@@ -280,6 +288,7 @@ end
 
 function Group:AddButton(first, second)
     local info = type(first) == "table" and first or { Text = first, Callback = second }
+    self.Elements = self.Elements or {}
     local box = holder(self, 36)
     local button = create("TextButton", {
         AutoButtonColor = false, Text = info.Text or "Button", TextColor3 = Colors.FontColor,
@@ -1237,16 +1246,29 @@ function SaveManager:ExportJSON(name)
     return content
 end
 function SaveManager:ImportJSON(content) return self:LoadJSON(content) end
+function SaveManager:GetAutoloadPath()
+    local directory = self.Folder .. (self.SubFolder and self.SubFolder ~= "" and "/" .. self.SubFolder or "")
+    return directory .. "/autoload.txt"
+end
 function SaveManager:SaveAutoloadConfig(name)
-    self.AutoloadConfig = safeName(name)
-    if canWrite() then self:CheckFolderTree(); pcall(Compat.writefile, self.Folder .. "/autoload.txt", self.AutoloadConfig) end
+    name = safeName(name)
+    if name == "" or name:lower() == "autoload" then return false, "Invalid config name" end
+    self.AutoloadConfig = name
+    if canWrite() then
+        self:CheckFolderTree()
+        local ok, err = pcall(Compat.writefile, self:GetAutoloadPath(), self.AutoloadConfig)
+        if not ok then return false, tostring(err) end
+    end
     return true
 end
 function SaveManager:GetAutoloadConfig()
     if canWrite() and type(Compat.isfile) == "function" then
-        local path = self.Folder .. "/autoload.txt"
+        local path = self:GetAutoloadPath()
         local ok, exists = pcall(Compat.isfile, path)
-        if ok and exists then local readOk, value = pcall(Compat.readfile, path); if readOk then self.AutoloadConfig = value end end
+        if ok and exists then
+            local readOk, value = pcall(Compat.readfile, path)
+            if readOk and type(value) == "string" then self.AutoloadConfig = value end
+        end
     end
     return self.AutoloadConfig or "none", self.AutoloadConfig ~= nil
 end
