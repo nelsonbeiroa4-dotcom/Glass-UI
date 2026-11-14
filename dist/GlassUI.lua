@@ -842,6 +842,7 @@ function Library:UpdateSearch(query)
         if group.Type == "Groupbox" then
             group.Holder.Visible = needle == "" or anyVisible or matches(group.Name)
         end
+        if group.Resize then group:Resize() end
         return anyVisible or matches(group.Name)
     end
     for _, tab in ipairs(Library.Tabs) do
@@ -883,7 +884,12 @@ function Library:Notify(info, duration)
     if not Library.ScreenGui then return nil end
     local stack = Library.ScreenGui:FindFirstChild("NotificationStack")
     if not stack then
-        stack = create("Frame", { Name = "NotificationStack", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -14, 0, 14), Size = UDim2.fromOffset(300, 0), AutomaticSize = Enum.AutomaticSize.Y, ZIndex = 200 }, Library.ScreenGui)
+        stack = create("Frame", {
+            Name = "NotificationStack", BackgroundTransparency = 1,
+            AnchorPoint = Library.NotifySide == "Left" and Vector2.new(0, 0) or Vector2.new(1, 0),
+            Position = Library.NotifySide == "Left" and UDim2.fromOffset(14, 14) or UDim2.new(1, -14, 0, 14),
+            Size = UDim2.fromOffset(300, 0), AutomaticSize = Enum.AutomaticSize.Y, ZIndex = 200,
+        }, Library.ScreenGui)
         vertical(stack, 8)
     end
     local card = glass(stack, UDim2.new(1, 0, 0, 0), 10)
@@ -934,6 +940,11 @@ end
 
 function Library:SetNotifySide(side)
     Library.NotifySide = side == "Left" and "Left" or "Right"
+    local stack = Library.ScreenGui and Library.ScreenGui:FindFirstChild("NotificationStack")
+    if stack then
+        stack.AnchorPoint = Library.NotifySide == "Left" and Vector2.new(0, 0) or Vector2.new(1, 0)
+        stack.Position = Library.NotifySide == "Left" and UDim2.fromOffset(14, 14) or UDim2.new(1, -14, 0, 14)
+    end
 end
 function Library:SetWatermark(value)
     if Library.DefaultWatermark then Library.DefaultWatermark:SetText(value) end
@@ -1001,6 +1012,7 @@ end
 -- One shared input listener handles the window hotkey and key-picker capture.
 connect(UserInputService.InputBegan, function(input, processed)
     if processed then return end
+    if UserInputService:GetFocusedTextBox() and not Library.ActiveKeyCapture then return end
     if Library.ActiveKeyCapture then
         local option = Library.ActiveKeyCapture
         local key = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode.Name or input.UserInputType.Name
