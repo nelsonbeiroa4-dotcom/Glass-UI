@@ -1,18 +1,18 @@
 # Glass UI API
 
-Glass UI is a Roblox Luau interface library with a dark glassmorphism visual system. It is intentionally independent of Potassium and Obsidian.
+Glass UI is a Roblox Luau interface library with a dark glassmorphism visual system. It is independent of Potassium and Obsidian.
 
 ## Loading
 
 local Library = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/OWNER/REPOSITORY/main/dist/GlassUI.lua"
+    "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua"
 ))()
 
 ## Window
 
 local Window = Library:CreateWindow({
     Title = "My interface",
-    Footer = "Build 0.1.0",
+    Footer = "My script • 0.2.0",
     Size = UDim2.fromOffset(760, 550),
     Position = UDim2.fromScale(0.5, 0.5),
     AutoShow = true,
@@ -26,6 +26,9 @@ Window:Toggle(boolean?)
 Window:SetTitle(text)
 Window:SetFooter(text)
 Window:SetBackgroundImage(asset)
+Window:SetSidebarCompacted(boolean)
+
+The window can be dragged from its header and resized from the lower-right corner. The search field filters control labels using a simple case-insensitive substring match.
 
 Tabs:
 - AddLeftGroupbox(name, icon?, visible?, collapsed?, disableCollapsing?)
@@ -48,7 +51,7 @@ group:AddToggle("Enabled", {
 })
 group:AddCheckbox("Enabled", { Text = "Enable feature", Default = false })
 
-Toggles support addons:
+Toggle addons:
 - toggle:AddColorPicker(index, info)
 - toggle:AddKeyPicker(index, info)
 
@@ -56,6 +59,8 @@ Toggles support addons:
 
 group:AddButton("Run", function() end)
 group:AddButton({ Text = "Run", Callback = function() end })
+
+Buttons can attach a key picker through AddKeyPicker(index, info).
 
 ### Input
 
@@ -116,7 +121,7 @@ group:AddKeyPicker("ToggleKey", {
     Callback = function(active) end,
 })
 
-Click the key field and press a key to rebind it.
+Click the key field and press a key to rebind it. Modifier combinations and blacklist/whitelist handling are not part of the current release.
 
 ### Labels, layout and media
 
@@ -128,7 +133,7 @@ Click the key field and press a key to rebind it.
 - AddUIPassthrough(index, { Instance, Height })
 - AddDependencyBox() / AddDependencyGroupbox(), followed by SetupDependencies({ { option, expectedValue } })
 
-The caller must supply valid Roblox assets and Instances for media controls, and must respect Roblox content permissions.
+The caller must supply valid Roblox assets and Instances for media controls and respect Roblox content permissions.
 
 ## Notifications, dialogs and loading
 
@@ -179,13 +184,15 @@ Library.ThemeManager:ApplyToTab(settingsTab)
 Library.ThemeManager:SaveCustomTheme("My theme")
 Library.ThemeManager:SetDefaultTheme("Violet")
 Library.ThemeManager:LoadDefault()
+Library.ThemeManager:Delete("My theme")
 
-Built-in themes: Violet, Rose, Ocean, Midnight and Mint. Theme colors may be represented as Color3 values or hexadecimal strings in JSON.
+Built-in themes: Violet, Rose, Ocean, Midnight and Mint. Theme colors are stored as Color3 values and custom theme files use hexadecimal strings.
 
 ## Configurations
 
 local SaveManager = Library.SaveManager
 SaveManager:SetFolder("MyScript/Configs")
+SaveManager:SetSubFolder("ProfileA")
 SaveManager:Save("Legit")
 SaveManager:Load("Legit")
 SaveManager:Delete("Legit")
@@ -209,4 +216,4 @@ Unload disconnects shared input connections, destroys the ScreenGui and clears i
 
 ## Release boundary
 
-This is the initial public implementation baseline, not a claim of one-to-one parity with every internal Obsidian behavior. Only the methods listed in this guide should be considered part of the current supported API. Further features should be added through tested releases.
+This is an early public implementation baseline, not one-to-one parity with every internal Obsidian behavior. The current feature boundaries are listed in docs/FeatureStatus.md.

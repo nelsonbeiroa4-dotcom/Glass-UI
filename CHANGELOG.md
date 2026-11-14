@@ -1,16 +1,22 @@
 # Changelog
 
-## 0.1.0 — Initial public baseline
+## 0.2.0
+
+- Added an in-window control search field.
+- Added window resizing and sidebar compact mode.
+- Improved configuration browsing, deletion and autoload controls.
+- Added custom-theme selection, deletion and default-theme persistence.
+- Improved live theme repainting for already-created controls.
+- Added floating buttons and basic hover tooltips.
+- Fixed default subfolder handling and corrected the Violet theme outline color.
+- Expanded API, compatibility and feature-status documentation.
+
+## 0.1.0
 
 - Initialized the Glass UI repository.
 - Added a single-file distribution and readable source.
-- Added a glassmorphism window, tabs, groupboxes and nested tabboxes.
-- Added buttons, toggles, checkboxes, inputs, sliders, dropdowns, color pickers and key pickers.
-- Added labels, dividers, dependency boxes and media controls.
-- Added notifications, dialogs, loading panels and watermarks.
+- Added window, tabs, groupboxes and nested tabboxes.
+- Added the main interactive controls and media holders.
+- Added notifications, dialogs, loading panel and watermark.
 - Added integrated SaveManager and ThemeManager.
-- Added built-in Violet, Rose, Ocean, Midnight and Mint palettes.
 - Added optional executor capability detection and a PlayerGui fallback.
-- Added API, compatibility and usage documentation.
-
-This is an early implementation baseline. See the compatibility guide for current limitations.

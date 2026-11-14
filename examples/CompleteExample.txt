@@ -1,18 +1,17 @@
 --[[
     Glass UI - Complete Example
-    Publish dist/GlassUI.lua to a public GitHub repository first.
-    Replace OWNER/REPOSITORY below with your repository name.
+    Current distribution:
+    https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua
 ]]
 
 local Library = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/OWNER/REPOSITORY/main/dist/GlassUI.lua"
+    "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua"
 ))()
 
 local Window = Library:CreateWindow({
     Title = "Glass UI | Example",
     Footer = "Glass UI • Example build",
     Size = UDim2.fromOffset(780, 560),
-    Center = true,
     AutoShow = true,
     ToggleKeybind = Enum.KeyCode.RightControl,
 })
@@ -108,9 +107,6 @@ Controls:AddInput("PlayerName", {
 Controls:AddColorPicker("StandaloneColor", {
     Title = "Standalone color",
     Default = Color3.fromRGB(80, 150, 255),
-    Callback = function(color)
-        print("Color:", color)
-    end,
 })
 
 Controls:AddKeyPicker("ExampleKey", {
@@ -167,5 +163,5 @@ Library:Notify({
 -- local loaded, reason = Library.SaveManager:LoadAutoloadConfig()
 -- if not loaded then warn(reason) end
 
--- Cleanup when your script is stopped:
+-- Cleanup when the script is stopped:
 -- Library:Unload()

@@ -1,8 +1,8 @@
 # Glass UI
 
-A Roblox Luau interface library with a dark glassmorphism visual style. Compact navigation, translucent panels, restrained accents and a consistent control API.
+Glass UI is a Roblox Luau interface library with a dark glassmorphism style. It uses translucent surfaces, restrained gradients and a compact two-column layout.
 
-Glass UI has its own implementation and does not require Potassium or Obsidian.
+The library has its own implementation and does not require Potassium or Obsidian.
 
 ## Quick start
 
@@ -30,18 +30,19 @@ Group:AddButton("Notify", function()
     Library:Notify("Glass UI is ready.", 3)
 end)
 
-## Included in 0.1.0
+## Features in 0.2.0
 
-- Window, tabs, left/right groupboxes and nested tabboxes
-- Buttons, toggles, checkboxes, inputs and sliders
-- Single and multi-select dropdowns
+- Draggable, resizable window with a compactable sidebar
+- Tabs, key tabs, left/right groupboxes and nested tabboxes
+- In-window text search
+- Buttons, toggles, checkboxes, inputs, sliders and dropdowns
 - Color pickers and key pickers
 - Labels, dividers and dependency boxes
 - Image, viewport, video and UI passthrough controls
 - Notifications, dialogs, loading panels and watermarks
-- Integrated SaveManager and ThemeManager
-- Five built-in color palettes and runtime theme updates
-- Optional executor capability detection
+- SaveManager with config list, import/export and autoload
+- ThemeManager with built-in and custom palettes
+- Optional executor capability detection and PlayerGui fallback
 - Explicit cleanup through Library:Unload()
 
 ## Repository layout
@@ -49,20 +50,21 @@ end)
 - src/GlassUI.lua — readable source
 - dist/GlassUI.lua — single-file loadstring distribution
 - examples/CompleteExample.txt — full usage example
-- docs/API.md — API guide
+- docs/API.md — API reference
 - docs/Compatibility.md — executor capability and fallback notes
+- docs/FeatureStatus.md — implemented features and current boundaries
 - CHANGELOG.md — release notes
 
 ## Compatibility
 
 The GUI itself uses Roblox services. Executor-only APIs are optional. Filesystem persistence requires file APIs; without those, SaveManager stores settings in session memory and supports JSON import/export.
 
-Compatibility is best-effort. No single UI library can guarantee that every executor exposes the same functions or permits identical GUI parenting.
+Compatibility is best-effort. Executors can expose different functions, restrict GUI parenting, or change HttpGet behavior. No library can guarantee identical behavior in every executor.
 
 ## Performance and visual design
 
-The core does not run a permanent RenderStepped loop. It uses event-driven input, short tweens and on-demand theme updates. Translucency, gradients and outlines provide the glass effect without a continuous screen blur.
+The core does not run a permanent RenderStepped loop. It uses shared input listeners, short tweens and on-demand theme updates. Translucency, gradients and outlines provide the glass effect without a continuous screen blur.
 
-## Current status
+## Status
 
-This is the first public implementation baseline. The API is independent and intended to grow through tested additions. It does not claim complete one-to-one parity with every internal Obsidian feature yet. The compatibility guide lists the current boundaries.
+Glass UI is under active development. The API is independent and intended to grow through tested additions. This release is a functional baseline, not a promise of full one-to-one parity with every internal Obsidian feature. The compatibility and feature-status documents describe the current limits.

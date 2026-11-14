@@ -1,6 +1,6 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.1.0
+-- Version: 0.2.0
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -41,7 +41,7 @@ local Colors = {
 }
 
 local Library = {
-    Name = "Glass UI", Version = "0.1.0", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.0", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -775,9 +775,9 @@ function Library:CreateWindow(info)
     local sidebar = create("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(12, 66), Size = UDim2.new(0, 155, 1, -100), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2 }, main)
     vertical(sidebar, 4)
     local pageHost = create("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(180, 66), Size = UDim2.new(1, -192, 1, -100) }, main)
-    local footer = text(main, info.Footer or "Glass UI  •  0.1.0", 10, Colors.MutedColor)
+    local footer = text(main, info.Footer or "Glass UI  •  0.2.0", 10, Colors.MutedColor)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
-    local window = setmetatable({ Main = main, Sidebar = sidebar, PageHost = pageHost, TitleLabel = title, FooterLabel = footer, Tabs = {}, ActiveTab = nil, BackgroundImage = create("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 0.8, Size = UDim2.fromScale(1, 1), Visible = false }, main) }, Window)
+    local window = setmetatable({ Main = main, Sidebar = sidebar, PageHost = pageHost, TitleLabel = title, FooterLabel = footer, Tabs = {}, ActiveTab = nil, BackgroundImage = create("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 0.8, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 0 }, main) }, Window)
     Library.Window = window
     window.SearchBox = search
     search:GetPropertyChangedSignal("Text"):Connect(function() Library:UpdateSearch(search.Text) end)
