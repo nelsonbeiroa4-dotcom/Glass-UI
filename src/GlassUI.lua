@@ -218,9 +218,12 @@ local function makeOption(group, index, kind, default, info)
     info = info or {}
     local option = {
         Index = index, Type = kind, Value = default, Default = default,
+        Text = info.Text or index,
         Callback = info.Callback, Changed = info.Changed, Parent = group,
         Visible = true, Disabled = false, Connections = {},
     }
+    group.Elements = group.Elements or {}
+    table.insert(group.Elements, option)
     if kind == "Toggle" or kind == "Checkbox" then Library.Toggles[index] = option else Library.Options[index] = option end
     function option:SetValue(value, silent)
         if self.Disabled then return end
@@ -251,8 +254,9 @@ function Group:AddLabel(info, wrap)
     local label = text(box, info.Text or "", info.Size or 13, Colors.MutedColor)
     label.TextWrapped = info.DoesWrap == true
     label.Size = UDim2.new(1, 0, 0, info.DoesWrap and 36 or 20)
-    local item = { Type = "Label", TextLabel = label, Holder = box, Parent = self }
-    function item:SetText(value) label.Text = tostring(value) end
+    local item = { Type = "Label", Text = info.Text or "", TextLabel = label, Holder = box, Parent = self }
+    table.insert(self.Elements, item)
+    function item:SetText(value) self.Text = tostring(value); label.Text = self.Text end
     function item:SetVisible(value) box.Visible = value == true; self.Parent:Resize() end
     function item:AddColorPicker(index, data) return self.Parent:AddColorPicker(index, data, box) end
     function item:AddKeyPicker(index, data) return self.Parent:AddKeyPicker(index, data, box) end
@@ -286,8 +290,10 @@ function Group:AddButton(first, second)
     button.MouseEnter:Connect(function() tween(button, 0.12, { BackgroundColor3 = Colors.AccentColor }) end)
     button.MouseLeave:Connect(function() tween(button, 0.12, { BackgroundColor3 = Colors.PanelColor }) end)
     button.MouseButton1Click:Connect(function() safe(info.Callback or info.Func) end)
-    local item = { Type = "Button", Base = button, Holder = box, Parent = self }
-    function item:SetText(value) button.Text = tostring(value) end
+    local item = { Type = "Button", Text = info.Text or "Button", Base = button, Holder = box, Parent = self }
+    table.insert(self.Elements, item)
+    function item:SetText(value) self.Text = tostring(value); button.Text = self.Text end
+    function item:AddKeyPicker(index, data) return self.Parent:AddKeyPicker(index, data, box) end
     function item:SetVisible(value) box.Visible = value == true end
     function item:Destroy() box:Destroy() end
     self:Resize()
@@ -704,6 +710,12 @@ end
 function Window:SetTitle(value) self.TitleLabel.Text = tostring(value) end
 function Window:SetFooter(value) self.FooterLabel.Text = tostring(value) end
 function Window:SetBackgroundImage(asset) self.BackgroundImage.Image = tostring(asset); self.BackgroundImage.Visible = asset ~= nil and tostring(asset) ~= "" end
+function Window:SetSidebarCompacted(compacted)
+    self.SidebarCompacted = compacted == true
+    self.Sidebar.Size = UDim2.new(0, self.SidebarCompacted and 58 or 155, 1, -100)
+    self.PageHost.Position = UDim2.fromOffset(self.SidebarCompacted and 82 or 180, 66)
+    self.PageHost.Size = UDim2.new(1, self.SidebarCompacted and -94 or -192, 1, -100)
+end
 function Window:RefreshTheme()
     self.Main.BackgroundColor3 = Colors.BackgroundColor
     self.TitleLabel.TextColor3 = Colors.FontColor
@@ -749,7 +761,15 @@ function Library:CreateWindow(info)
     main.ClipsDescendants = true
     local header = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 52) }, main)
     local title = text(header, info.Title or "Glass UI", 17, Colors.FontColor, Enum.Font.GothamBold)
-    title.Position = UDim2.fromOffset(17, 0); title.Size = UDim2.new(1, -75, 1, 0); title.AutomaticSize = Enum.AutomaticSize.None
+    title.Position = UDim2.fromOffset(17, 0); title.Size = UDim2.new(1, -300, 1, 0); title.AutomaticSize = Enum.AutomaticSize.None
+    local search = create("TextBox", {
+        Text = "", PlaceholderText = "Search controls...", ClearTextOnFocus = false,
+        TextColor3 = Colors.FontColor, PlaceholderColor3 = Colors.MutedColor,
+        TextSize = 11, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundColor3 = Colors.PanelColor, BackgroundTransparency = 0.12,
+        Position = UDim2.new(1, -246, 0.5, -14), Size = UDim2.fromOffset(205, 28),
+    }, header)
+    round(search, 7); outline(search, 0.8)
     local close = create("TextButton", { AutoButtonColor = false, Text = "×", TextColor3 = Colors.MutedColor, TextSize = 23, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, 0), Size = UDim2.fromOffset(30, 30) }, header)
     local separator = create("Frame", { BackgroundColor3 = Colors.OutlineColor, BackgroundTransparency = 0.72, BorderSizePixel = 0, Position = UDim2.fromOffset(0, 52), Size = UDim2.new(1, 0, 0, 1) }, main)
     local sidebar = create("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(12, 66), Size = UDim2.new(0, 155, 1, -100), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2 }, main)
@@ -759,6 +779,8 @@ function Library:CreateWindow(info)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
     local window = setmetatable({ Main = main, Sidebar = sidebar, PageHost = pageHost, TitleLabel = title, FooterLabel = footer, Tabs = {}, ActiveTab = nil, BackgroundImage = create("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 0.8, Size = UDim2.fromScale(1, 1), Visible = false }, main) }, Window)
     Library.Window = window
+    window.SearchBox = search
+    search:GetPropertyChangedSignal("Text"):Connect(function() Library:UpdateSearch(search.Text) end)
     close.MouseButton1Click:Connect(function() if info.CloseButtonDestroys then Library:Unload() else main.Visible = false end end)
     local dragging, start, origin = false, nil, nil
     header.InputBegan:Connect(function(input)
@@ -773,9 +795,67 @@ function Library:CreateWindow(info)
     connect(UserInputService.InputEnded, function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
     end)
+    local resizeHandle = create("TextButton", {
+        AutoButtonColor = false, Text = "↘", TextColor3 = Colors.MutedColor,
+        TextSize = 15, BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -5, 1, -4),
+        Size = UDim2.fromOffset(23, 23), ZIndex = 10,
+    }, main)
+    local resizing, resizeStart, startSize = false, nil, nil
+    resizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = true; resizeStart = input.Position; startSize = main.Size
+        end
+    end)
+    connect(UserInputService.InputChanged, function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - resizeStart
+            main.Size = UDim2.fromOffset(math.max(520, startSize.X.Offset + delta.X), math.max(360, startSize.Y.Offset + delta.Y))
+        end
+    end)
+    connect(UserInputService.InputEnded, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then resizing = false end
+    end)
     main.Visible = info.AutoShow ~= false
     Library.ToggleKeybind = info.ToggleKeybind or Library.ToggleKeybind
     return window
+end
+
+function Library:UpdateSearch(query)
+    local needle = string.lower(tostring(query or ""))
+    local function matches(value)
+        if needle == "" then return true end
+        return string.find(string.lower(tostring(value or "")), needle, 1, true) ~= nil
+    end
+    local function scan(group)
+        local anyVisible = false
+        for _, element in ipairs(group.Elements or {}) do
+            local visible = matches(element.Text or element.Name)
+            if element.Holder then element.Holder.Visible = visible end
+            if visible then anyVisible = true end
+        end
+        for _, dependency in ipairs(group.DependencyBoxes or {}) do
+            local childVisible = scan(dependency)
+            dependency.Holder.Visible = childVisible and matches(dependency.Name or "")
+            if dependency.Holder.Visible then anyVisible = true end
+        end
+        if group.Type == "Groupbox" then
+            group.Holder.Visible = needle == "" or anyVisible or matches(group.Name)
+        end
+        return anyVisible or matches(group.Name)
+    end
+    for _, tab in ipairs(Library.Tabs) do
+        local found = matches(tab.Name) or matches(tab.Description)
+        for _, group in ipairs(tab.Groupboxes or {}) do
+            if scan(group) then found = true end
+        end
+        tab.Button.Visible = needle == "" or found
+        if not found and tab.Page.Visible then
+            for _, other in ipairs(Library.Tabs) do
+                if other.Button.Visible then other.Window:SelectTab(other); break end
+            end
+        end
+    end
 end
 
 function Library:UpdateDependencies()
@@ -1024,7 +1104,8 @@ end
 function SaveManager:RefreshConfigList()
     local names = {}
     if canWrite() and type(Compat.listfiles) == "function" then
-        local ok, files = pcall(Compat.listfiles, self.Folder)
+        local directory = self.Folder .. (self.SubFolder and self.SubFolder ~= "" and "/" .. self.SubFolder or "")
+        local ok, files = pcall(Compat.listfiles, directory)
         if ok and type(files) == "table" then for _, path in ipairs(files) do local name = tostring(path):match("([^/\\]+)%.json$"); if name then table.insert(names, name) end end end
     else for name in pairs(self.Memory) do table.insert(names, name) end end
     table.sort(names); return names
@@ -1057,10 +1138,38 @@ end
 function SaveManager:BuildConfigSection(tab)
     local group = tab:AddRightGroupbox("Configuration")
     local name = group:AddInput("GlassUI_ConfigName", { Text = "Config name", Placeholder = "my-settings" })
-    group:AddButton("Save config", function() local ok, err = self:Save(name.Value); Library:Notify({ Title = ok and "Config saved" or "Save failed", Description = ok and name.Value or tostring(err) }) end)
-    group:AddButton("Load config", function() local ok, err = self:Load(name.Value); Library:Notify({ Title = ok and "Config loaded" or "Load failed", Description = ok and name.Value or tostring(err) }) end)
-    group:AddButton("Set autoload", function() self:SaveAutoloadConfig(name.Value); Library:Notify("Autoload config set to " .. tostring(name.Value)) end)
-    group:AddButton("Export JSON", function() local json, err = self:ExportJSON(name.Value); Library:Notify(json and "JSON exported" or tostring(err)) end)
+    local list = group:AddDropdown("GlassUI_ConfigList", { Text = "Saved configs", Values = self:RefreshConfigList(), Default = nil })
+    local function refresh()
+        list:SetValues(self:RefreshConfigList())
+        list:SetValue(nil)
+    end
+    group:AddButton("Save config", function()
+        local ok, err = self:Save(name.Value)
+        Library:Notify({ Title = ok and "Config saved" or "Save failed", Description = ok and name.Value or tostring(err) })
+        if ok then refresh() end
+    end)
+    group:AddButton("Load selected", function()
+        local selected = list.Value or name.Value
+        local ok, err = self:Load(selected)
+        Library:Notify({ Title = ok and "Config loaded" or "Load failed", Description = ok and selected or tostring(err) })
+    end)
+    group:AddButton("Delete selected", function()
+        if not list.Value then Library:Notify("Select a config first."); return end
+        local selected = list.Value
+        local ok, err = self:Delete(selected)
+        Library:Notify({ Title = ok and "Config deleted" or "Delete failed", Description = ok and selected or tostring(err) })
+        if ok then refresh() end
+    end)
+    group:AddButton("Set autoload", function()
+        local selected = list.Value or name.Value
+        local ok, err = self:SaveAutoloadConfig(selected)
+        Library:Notify({ Title = ok and "Autoload updated" or "Autoload failed", Description = ok and selected or tostring(err) })
+    end)
+    group:AddButton("Export JSON", function()
+        local json, err = self:ExportJSON(name.Value)
+        Library:Notify(json and "JSON exported" or tostring(err))
+    end)
+    group:AddButton("Refresh list", refresh)
     return group
 end
 
@@ -1152,11 +1261,26 @@ function ThemeManager:Delete(name)
     return true
 end
 function ThemeManager:SetDefaultTheme(name)
-    if not self.BuiltInThemes[name] and not self.CustomThemes[name] then return false, "Theme not found" end
-    self.DefaultThemeName = name; return true
+    if not self.BuiltInThemes[name] and not self:GetCustomTheme(name) then return false, "Theme not found" end
+    self.DefaultThemeName = name
+    if canWrite() then
+        self.Library.SaveManager:CheckFolderTree()
+        pcall(Compat.writefile, self.Library.SaveManager.Folder .. "/default-theme.txt", name)
+    end
+    return true
 end
 function ThemeManager:SaveDefault(name) return self:SetDefaultTheme(name) end
-function ThemeManager:LoadDefault() return self:ApplyTheme(self.DefaultThemeName or "Violet") end
+function ThemeManager:LoadDefault()
+    if canWrite() and type(Compat.isfile) == "function" then
+        local path = self.Library.SaveManager.Folder .. "/default-theme.txt"
+        local ok, exists = pcall(Compat.isfile, path)
+        if ok and exists then
+            local readOk, name = pcall(Compat.readfile, path)
+            if readOk and type(name) == "string" and name ~= "" then self.DefaultThemeName = name end
+        end
+    end
+    return self:ApplyTheme(self.DefaultThemeName or "Violet")
+end
 function ThemeManager:ThemeUpdate() return self:ApplyThemeData(self:BuildThemeData()) end
 function ThemeManager:CreateThemeManager(group)
     local names = {}
