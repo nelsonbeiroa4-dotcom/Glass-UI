@@ -1,4 +1,4 @@
-# Feature status — 0.2.0
+# Feature status — 0.2.1
 
 This file is the source of truth for what the current public distribution actually includes. An API name in an old script or in the Obsidian reference does not imply that Glass UI implements the same behavior.
 

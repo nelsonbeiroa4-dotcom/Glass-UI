@@ -2,6 +2,16 @@
 
 ## 0.2.1
 
+- Fixed child layout inside input, slider and dropdown controls.
+- Fixed labels and buttons added to nested tab pages.
+- Added drag behavior to floating text and image buttons.
+- Made autoload configuration respect the current subfolder.
+- Made dependency visibility survive an empty or active search query.
+- Added the direct Library:SetBackgroundImage helper and refined floating UI APIs.
+
+
+## 0.2.1
+
 - Fixed vertical layout for controls containing more than one child.
 - Fixed controls added inside nested tab pages.
 - Added drag support for floating text and image buttons.

@@ -1,6 +1,6 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.2.0
+-- Version: 0.2.1
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -41,7 +41,7 @@ local Colors = {
 }
 
 local Library = {
-    Name = "Glass UI", Version = "0.2.0", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.1", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -785,7 +785,7 @@ function Library:CreateWindow(info)
     local sidebar = create("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(12, 66), Size = UDim2.new(0, 155, 1, -100), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2 }, main)
     vertical(sidebar, 4)
     local pageHost = create("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(180, 66), Size = UDim2.new(1, -192, 1, -100) }, main)
-    local footer = text(main, info.Footer or "Glass UI  •  0.2.0", 10, Colors.MutedColor)
+    local footer = text(main, info.Footer or "Glass UI  •  0.2.1", 10, Colors.MutedColor)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
     local window = setmetatable({ Main = main, Sidebar = sidebar, PageHost = pageHost, TitleLabel = title, FooterLabel = footer, Tabs = {}, ActiveTab = nil, BackgroundImage = create("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 0.8, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 0 }, main) }, Window)
     window.UIScale = create("UIScale", { Scale = Library.DPIScale or 1 }, main)
@@ -834,9 +834,22 @@ end
 
 function Library:UpdateSearch(query)
     local needle = string.lower(tostring(query or ""))
+    Library.SearchText = needle
     local function matches(value)
         if needle == "" then return true end
         return string.find(string.lower(tostring(value or "")), needle, 1, true) ~= nil
+    end
+    local function dependenciesMatch(dependencies)
+        for _, dependency in ipairs(dependencies or {}) do
+            local option, expected = dependency[1], dependency[2]
+            if not option or option.Disabled then return false end
+            if type(option.Value) == "table" then
+                if not table.find(option.Value, expected) then return false end
+            elseif option.Value ~= expected then
+                return false
+            end
+        end
+        return true
     end
     local function scan(group)
         local anyVisible = false
@@ -847,7 +860,8 @@ function Library:UpdateSearch(query)
         end
         for _, dependency in ipairs(group.DependencyBoxes or {}) do
             local childVisible = scan(dependency)
-            dependency.Holder.Visible = childVisible
+            local allowed = dependenciesMatch(dependency.Dependencies)
+            dependency.Holder.Visible = allowed and childVisible
             if dependency.Holder.Visible then anyVisible = true end
         end
         if group.Type == "Groupbox" then
@@ -874,7 +888,7 @@ function Library:UpdateDependencies()
     local function check(dependencies)
         for _, dependency in ipairs(dependencies or {}) do
             local option, expected = dependency[1], dependency[2]
-            if not option then return false end
+            if not option or option.Disabled then return false end
             if type(option.Value) == "table" then
                 if not table.find(option.Value, expected) then return false end
             elseif option.Value ~= expected then return false end
@@ -887,7 +901,12 @@ function Library:UpdateDependencies()
             visit(box)
         end
     end
-    for _, tab in ipairs(Library.Tabs) do for _, group in ipairs(tab.Groupboxes) do visit(group) end end
+    for _, tab in ipairs(Library.Tabs) do
+        for _, group in ipairs(tab.Groupboxes) do visit(group) end
+    end
+    if Library.SearchText ~= nil then
+        Library:UpdateSearch(Library.SearchText)
+    end
 end
 
 function Library:Notify(info, duration)
