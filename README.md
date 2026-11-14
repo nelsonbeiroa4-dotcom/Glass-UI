@@ -30,7 +30,7 @@ Group:AddButton("Notify", function()
     Library:Notify("Glass UI is ready.", 3)
 end)
 
-## Features in 0.2.3
+## Features in 0.2.4
 
 - Draggable, resizable window with a compactable sidebar
 - Tabs, key tabs, left/right groupboxes and nested tabboxes
@@ -42,7 +42,8 @@ end)
 - Notifications, dialogs, loading panels and watermarks
 - SaveManager with config list, import/export, subfolders and autoload
 - ThemeManager with built-in and custom palettes
-- Optional executor capability detection and PlayerGui fallback
+- Executor-name detection (identifyexecutor/getexecutorname) and PlayerGui fallback
+- Recognized executor names: Xeno, Solara, Wave, Delta, Swift, Potassium, Synapse Z, SirHurt, Real, Cosmic, Volt, Velocity, Madium, Volcano, KRNL, Fluxus, Electron, Codex, Arceus X, Vega X, Ronix, Hydrogen, MacSploit, Opiumware, Appleware, plus legacy Synapse X, Trigon and Script-Ware
 - Explicit cleanup through Library:Unload()
 
 ## Repository layout
@@ -59,11 +60,11 @@ end)
 
 The GUI itself uses Roblox services. Executor-only APIs are optional. Filesystem persistence requires file APIs; without those, SaveManager stores settings in session memory and supports JSON import/export.
 
-Compatibility is best-effort. Executors can expose different functions, restrict GUI parenting, or change HttpGet behavior. No library can guarantee identical behavior in every executor.
+Glass UI detects the executor through identifyexecutor()/getexecutorname(), with environment-marker fallbacks. The names above are recognized by the detector; this list does not claim every build has been runtime-tested. Unknown or unrecognized environments still render the GUI, but receive a whole-game Lighting blur while the window is visible. Recognized executors do not receive that global blur. Executor APIs, GUI parenting and HttpGet behavior can vary between builds.
 
 ## Performance and visual design
 
-The core does not run a permanent RenderStepped loop. It uses shared input listeners, short tweens and on-demand theme updates. Translucency, gradients and outlines provide a frosted-glass appearance. The library does not apply a global Lighting blur.
+The core does not run a permanent RenderStepped loop. It uses shared input listeners, short tweens and on-demand theme updates. Translucency, gradients and outlines provide a frosted-glass appearance on recognized executors. Since Roblox has no per-window live backdrop blur, unidentified environments use a global Lighting blur fallback while the GUI is open; it is removed when the window closes or the library unloads.
 
 ## Status
 

@@ -12,7 +12,7 @@ local Library = loadstring(game:HttpGet(
 
 local Window = Library:CreateWindow({
     Title = "My interface",
-    Footer = "My script • 0.2.3",
+    Footer = "My script • 0.2.4",
     Size = UDim2.fromOffset(760, 550),
     Position = UDim2.fromScale(0.5, 0.5),
     AutoShow = true,
@@ -28,7 +28,7 @@ Window:SetFooter(text)
 Window:SetBackgroundImage(asset)
 Window:SetSidebarCompacted(boolean)
 
-The window can be dragged from its header and resized from the lower-right corner. The search field filters control labels using a simple case-insensitive substring match. Roblox does not expose a per-GuiObject backdrop blur, so Glass UI uses translucent tinted layers instead of blurring the entire game. The legacy Window:SetBlurEnabled and Window:SetBlurSize methods are retained only as compatibility stubs; they do not enable any blur.
+The window can be dragged from its header and resized from the lower-right corner. The search field filters control labels using a simple case-insensitive substring match. Library.Compatibility exposes ExecutorName, ExecutorVersion, IsSupported, DetectionMethod and SupportedExecutors. Window:SetBlurEnabled(boolean) controls the fallback blur for unrecognized environments; Window:SetBlurSize(number) changes its intensity (0–56). Recognized executors never receive a global blur. The CreateWindow options BlurEnabled (default true) and BlurSize (default 18) configure the fallback. Roblox does not expose a per-GuiObject live backdrop blur, so this fallback affects the whole 3D scene.
 
 Tabs:
 - AddLeftGroupbox(name, icon?, visible?, collapsed?, disableCollapsing?)

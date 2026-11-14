@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4
+
+- Added explicit executor identification using identifyexecutor/getexecutorname plus selected environment markers.
+- Added a documented allowlist of recognized executor names and compatibility status fields.
+- Added a global Lighting blur fallback for unrecognized environments while the GUI is visible; it is removed on close or unload.
+- Added BlurEnabled and BlurSize CreateWindow options and functional Window:SetBlurEnabled/SetBlurSize methods.
+
 ## 0.2.3
 
 - Removed the global Lighting BlurEffect introduced in 0.2.2.

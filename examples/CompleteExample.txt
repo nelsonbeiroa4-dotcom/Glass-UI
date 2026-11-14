@@ -8,6 +8,9 @@ local Library = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua"
 ))()
 
+print("[Glass UI] Executor:", Library.Compatibility.ExecutorName)
+print("[Glass UI] Recognized:", Library.Compatibility.IsSupported)
+
 local Window = Library:CreateWindow({
     Title = "Glass UI | Example",
     Footer = "Glass UI • Example build",

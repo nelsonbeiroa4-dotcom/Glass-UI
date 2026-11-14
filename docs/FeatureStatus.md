@@ -1,4 +1,4 @@
-# Feature status — 0.2.3
+# Feature status — 0.2.4
 
 This file is the source of truth for what the current public distribution actually includes. An API name in an old script or in the Obsidian reference does not imply that Glass UI implements the same behavior.
 
@@ -16,7 +16,8 @@ This file is the source of truth for what the current public distribution actual
 - Draggable floating button and basic hover tooltip
 - SaveManager: JSON save/load/delete, config listing, import/export, autoload and ignored indexes
 - ThemeManager: built-in palettes, custom theme save/load/delete and default theme selection
-- Optional executor capability detection and cleanup on unload
+- Executor-name detection through identifyexecutor/getexecutorname and selected environment markers
+- Executor-dependent global blur fallback for unrecognized environments; cleanup on close/unload
 
 ## Simplified implementations
 
@@ -29,7 +30,7 @@ This file is the source of truth for what the current public distribution actual
 - Dependency boxes support direct expected-value checks. Complex dependency graphs and every edge case from Obsidian are not reproduced.
 - Groupbox content uses a two-column layout with a simple collapse interaction; resizing and automatic pop-out behavior are not implemented.
 - Theme controls cover the principal colors and presets. Font-face, background image, transparency and contrast tooling are not yet integrated into the theme editor.
-- The UI uses translucent surfaces, tint and gradients to simulate frosted glass. A clipped live backdrop blur is unavailable through the standard Roblox GUI API; the library intentionally avoids Lighting.BlurEffect because it affects the entire 3D scene.
+- The UI uses translucent surfaces, tint and gradients to simulate frosted glass. A clipped live backdrop blur is unavailable through the standard Roblox GUI API. Recognized executors do not receive a global blur; unrecognized environments use a whole-scene Lighting.BlurEffect while the window is visible.
 
 ## Not implemented yet
 
@@ -43,4 +44,4 @@ This file is the source of truth for what the current public distribution actual
 
 ## Compatibility boundary
 
-Roblox GUI services are the primary implementation target. Executor-only filesystem, clipboard, gethui and protected-GUI functions are optional. Persistent file storage is unavailable in environments that do not expose the relevant functions; in those cases configs remain in memory until the script/session ends, and JSON import/export can be used to move them manually.
+Roblox GUI services are the primary implementation target. Glass UI recognizes the executor names listed in Compatibility.md through identifyexecutor/getexecutorname or marker fallbacks. Executor-only filesystem, clipboard, gethui and protected-GUI functions remain optional. Unrecognized environments are not blocked; they receive the global blur fallback while the GUI is visible. Persistent file storage is unavailable where the relevant functions are not exposed; configs then remain in memory until the script/session ends, and JSON import/export can be used to move them manually.

@@ -1,12 +1,13 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.2.3
+-- Version: 0.2.4
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -25,7 +26,90 @@ local Compat = {
     isfile = global("isfile"), makefolder = global("makefolder"),
     isfolder = global("isfolder"), listfiles = global("listfiles"),
     delfile = global("delfile"), setclipboard = global("setclipboard"),
+    ExecutorName = executorName, ExecutorVersion = executorVersion,
+    IsSupported = executorSupported, DetectionMethod = executorDetectionMethod,
+    SupportedExecutors = SupportedExecutorNames,
+    BlurMode = executorSupported and "disabled" or "global-fallback",
 }
+
+
+local SupportedExecutorData = {
+    { Name = "Xeno", Aliases = { "xeno" }, Markers = { "xeno" } },
+    { Name = "Solara", Aliases = { "solara" }, Markers = { "solara" } },
+    { Name = "Wave", Aliases = { "wave" }, Markers = { "wave" } },
+    { Name = "Delta", Aliases = { "delta" }, Markers = { "delta", "Delta" } },
+    { Name = "Swift", Aliases = { "swift" }, Markers = { "swift" } },
+    { Name = "Potassium", Aliases = { "potassium" }, Markers = { "potassium" } },
+    { Name = "Synapse Z", Aliases = { "synapse z", "synapsez" }, Markers = { "synapsez", "SynapseZ" } },
+    { Name = "SirHurt", Aliases = { "sirhurt", "sir hurt" }, Markers = { "sirhurt" } },
+    { Name = "Real", Aliases = { "real executor", "real" }, Markers = { "real" } },
+    { Name = "Cosmic", Aliases = { "cosmic" }, Markers = { "cosmic" } },
+    { Name = "Volt", Aliases = { "volt" }, Markers = { "volt" } },
+    { Name = "Velocity", Aliases = { "velocity" }, Markers = { "velocity" } },
+    { Name = "Madium", Aliases = { "madium" }, Markers = { "madium" } },
+    { Name = "Volcano", Aliases = { "volcano" }, Markers = { "volcano" } },
+    { Name = "KRNL", Aliases = { "krnl" }, Markers = { "Krnl", "krnl" } },
+    { Name = "Fluxus", Aliases = { "fluxus" }, Markers = { "Fluxus", "fluxus" } },
+    { Name = "Electron", Aliases = { "electron" }, Markers = { "Electron", "electron" } },
+    { Name = "Codex", Aliases = { "codex" }, Markers = { "Codex", "codex" } },
+    { Name = "Arceus X", Aliases = { "arceus x", "arceusx", "arceus" }, Markers = { "Arceus", "arceus", "arceusx" } },
+    { Name = "Vega X", Aliases = { "vega x", "vegax" }, Markers = { "VegaX", "vegax" } },
+    { Name = "Ronix", Aliases = { "ronix" }, Markers = { "Ronix", "ronix" } },
+    { Name = "Hydrogen", Aliases = { "hydrogen" }, Markers = { "Hydrogen", "hydrogen" } },
+    { Name = "MacSploit", Aliases = { "macsploit", "mac sploit" }, Markers = { "MacSploit", "macsploit" } },
+    { Name = "Opiumware", Aliases = { "opiumware" }, Markers = { "Opiumware", "opiumware" } },
+    { Name = "Appleware", Aliases = { "appleware" }, Markers = { "Appleware", "appleware" } },
+    { Name = "Synapse X", Aliases = { "synapse x", "synapsex" }, Markers = { "syn" } },
+    { Name = "Trigon", Aliases = { "trigon" }, Markers = { "Trigon", "trigon" } },
+    { Name = "Script-Ware", Aliases = { "script-ware", "scriptware" }, Markers = { "ScriptWare", "scriptware" } },
+}
+
+local SupportedExecutorNames = {}
+for _, entry in ipairs(SupportedExecutorData) do
+    table.insert(SupportedExecutorNames, entry.Name)
+end
+
+local function compactExecutorName(value)
+    return string.lower(tostring(value or "")):gsub("[^%w]", "")
+end
+
+local function canonicalExecutorName(value)
+    local compact = compactExecutorName(value)
+    if compact == "" then return nil end
+    for _, entry in ipairs(SupportedExecutorData) do
+        for _, alias in ipairs(entry.Aliases) do
+            local normalized = compactExecutorName(alias)
+            if compact == normalized or string.find(compact, normalized, 1, true) then
+                return entry.Name
+            end
+        end
+    end
+    return nil
+end
+
+local function detectExecutor()
+    local identityFunction = global("identifyexecutor") or global("getexecutorname")
+    if type(identityFunction) == "function" then
+        local ok, reportedName, reportedVersion = pcall(identityFunction)
+        if ok and type(reportedName) == "string" and reportedName ~= "" then
+            local canonical = canonicalExecutorName(reportedName)
+            return canonical or reportedName, tostring(reportedVersion or ""), canonical ~= nil, "identifyexecutor"
+        end
+    end
+
+    for _, entry in ipairs(SupportedExecutorData) do
+        for _, marker in ipairs(entry.Markers or {}) do
+            local markerValue = global(marker)
+            if markerValue ~= nil and markerValue ~= false then
+                return entry.Name, "", true, "environment marker"
+            end
+        end
+    end
+
+    return "Unknown", "", false, "not identified"
+end
+
+local executorName, executorVersion, executorSupported, executorDetectionMethod = detectExecutor()
 
 local Colors = {
     BackgroundColor = Color3.fromRGB(7, 10, 28),
@@ -41,12 +125,13 @@ local Colors = {
 }
 
 local Library = {
-    Name = "Glass UI", Version = "0.2.3", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.4", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
     ConfigStore = {}, Unloaded = false, IsMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled,
     ToggleKeybind = Enum.KeyCode.RightControl, NotifySide = "Right",
+    FallbackBlur = nil,
 }
 
 local function safe(callback, ...)
@@ -207,6 +292,36 @@ end
 
 function Library:OnUnload(callback)
     if type(callback) == "function" then table.insert(Library.UnloadCallbacks, callback) end
+end
+
+
+local function setFallbackBlur(enabled)
+    if Library.Compatibility.IsSupported then
+        if Library.FallbackBlur then
+            Library.FallbackBlur:Destroy()
+            Library.FallbackBlur = nil
+        end
+        return false
+    end
+
+    if not enabled then
+        if Library.FallbackBlur then
+            Library.FallbackBlur:Destroy()
+            Library.FallbackBlur = nil
+        end
+        return false
+    end
+
+    local effect = Library.FallbackBlur
+    if not effect or not effect.Parent then
+        effect = Instance.new("BlurEffect")
+        effect.Name = "GlassUI_FallbackBlur"
+        effect.Size = 0
+        effect.Parent = Lighting
+        Library.FallbackBlur = effect
+    end
+    effect.Size = Library.Window and Library.Window.BlurSize or 18
+    return true
 end
 
 local Group = {}
@@ -714,15 +829,19 @@ function Window:AddTab(name, icon, description)
     return tab
 end
 function Window:AddKeyTab(name, icon, description) return self:AddTab(name, icon, description) end
--- Roblox exposes BlurEffect through Lighting, which affects the entire 3D scene.
--- Glass UI deliberately avoids it: a ScreenGui cannot request a clipped backdrop blur.
-function Window:SetBlurEnabled(_enabled)
-    warn("[Glass UI] Local backdrop blur is not available through standard Roblox GUI APIs. No global blur was applied.")
-    return false
+-- A ScreenGui cannot request a clipped live-scene blur. Recognized executors keep
+-- the local glass style; unknown executors receive an optional whole-scene fallback.
+function Window:SetBlurEnabled(enabled)
+    self.BlurEnabled = enabled == true
+    return setFallbackBlur(self.BlurEnabled and self.Main.Visible)
 end
 
-function Window:SetBlurSize(_size)
-    return 0
+function Window:SetBlurSize(size)
+    self.BlurSize = math.clamp(tonumber(size) or 18, 0, 56)
+    if Library.FallbackBlur and Library.FallbackBlur.Parent then
+        Library.FallbackBlur.Size = self.BlurSize
+    end
+    return self.BlurSize
 end
 
 function Window:Toggle(value)
@@ -733,6 +852,7 @@ function Window:Toggle(value)
         visible = value == true
     end
     self.Main.Visible = visible
+    setFallbackBlur(visible and self.BlurEnabled)
     return visible
 end
 function Window:SetTitle(value) self.TitleLabel.Text = tostring(value) end
@@ -806,7 +926,7 @@ function Library:CreateWindow(info)
     local sidebar = create("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(12, 66), Size = UDim2.new(0, 155, 1, -100), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2 }, main)
     vertical(sidebar, 4)
     local pageHost = create("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(180, 66), Size = UDim2.new(1, -192, 1, -100) }, main)
-    local footer = text(main, info.Footer or "Glass UI  •  0.2.3", 10, Colors.MutedColor)
+    local footer = text(main, info.Footer or "Glass UI  •  0.2.4", 10, Colors.MutedColor)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
     local window = setmetatable({
         Main = main,
@@ -816,6 +936,8 @@ function Library:CreateWindow(info)
         FooterLabel = footer,
         Tabs = {},
         ActiveTab = nil,
+        BlurEnabled = info.BlurEnabled ~= false,
+        BlurSize = math.clamp(tonumber(info.BlurSize) or 18, 0, 56),
         BackgroundImage = create("ImageLabel", {
             BackgroundTransparency = 1,
             ImageTransparency = 0.8,
@@ -871,6 +993,7 @@ function Library:CreateWindow(info)
     end)
     main.Visible = info.AutoShow ~= false
     Library.ToggleKeybind = info.ToggleKeybind or Library.ToggleKeybind
+    setFallbackBlur(main.Visible and window.BlurEnabled)
     return window
 end
 
@@ -1554,6 +1677,10 @@ function Library:Unload()
     for _, callback in ipairs(Library.UnloadCallbacks) do safe(callback) end
     for _, toast in ipairs(Library.Notifications) do if toast.Destroy then toast:Destroy() end end
     for _, connection in ipairs(Library.Connections) do if connection.Connected then connection:Disconnect() end end
+    if Library.FallbackBlur then
+        Library.FallbackBlur:Destroy()
+        Library.FallbackBlur = nil
+    end
     if Library.ScreenGui then Library.ScreenGui:Destroy() end
     table.clear(Library.Connections); table.clear(Library.ThemeBindings)
     table.clear(Library.Options); table.clear(Library.Toggles); table.clear(Library.Tabs)
