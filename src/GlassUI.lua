@@ -830,6 +830,54 @@ function Library:CreateWatermark(info)
 end
 function Library:AddDraggableLabel(value) return Library:CreateWatermark({ Text = value, Visible = true }) end
 
+
+function Library:SetNotifySide(side)
+    Library.NotifySide = side == "Left" and "Left" or "Right"
+end
+function Library:SetWatermark(value)
+    if Library.DefaultWatermark then Library.DefaultWatermark:SetText(value) end
+end
+function Library:SetWatermarkVisibility(value)
+    if Library.DefaultWatermark then Library.DefaultWatermark:SetVisible(value) end
+end
+function Library:AddDraggableButton(value, callback)
+    if not Library.ScreenGui then return nil end
+    local button = create("TextButton", {
+        AutoButtonColor = false, Text = tostring(value or "Button"),
+        TextColor3 = Colors.FontColor, TextSize = 12, Font = Enum.Font.GothamSemibold,
+        BackgroundColor3 = Colors.SurfaceColor, BackgroundTransparency = 0.08,
+        Position = UDim2.fromOffset(16, 60), Size = UDim2.fromOffset(120, 32),
+    }, Library.ScreenGui)
+    round(button, 8); outline(button, 0.72)
+    button.MouseButton1Click:Connect(function() safe(callback) end)
+    return {
+        Button = button,
+        SetText = function(_, textValue) button.Text = tostring(textValue) end,
+        SetVisible = function(_, visible) button.Visible = visible == true end,
+        Destroy = function() button:Destroy() end,
+    }
+end
+function Library:AddTooltip(info, disabledInfo, target)
+    if not target or not Library.ScreenGui then return nil end
+    local tooltip = glass(Library.ScreenGui, UDim2.fromOffset(220, 36), 7)
+    tooltip.Visible = false
+    tooltip.ZIndex = 400
+    local label = text(tooltip, info or "", 11, Colors.FontColor)
+    label.Position = UDim2.fromOffset(8, 0)
+    label.Size = UDim2.new(1, -16, 1, 0)
+    label.AutomaticSize = Enum.AutomaticSize.None
+    label.ZIndex = 401
+    local enter = target.MouseEnter:Connect(function()
+        label.Text = target.Active == false and (disabledInfo or info or "") or (info or "")
+        tooltip.Position = UDim2.fromOffset(target.AbsolutePosition.X + target.AbsoluteSize.X + 6, target.AbsolutePosition.Y)
+        tooltip.Visible = true
+    end)
+    local leave = target.MouseLeave:Connect(function() tooltip.Visible = false end)
+    local item = { Frame = tooltip }
+    function item:Destroy() enter:Disconnect(); leave:Disconnect(); tooltip:Destroy() end
+    return item
+end
+
 function Library:CreateLoading(info)
     info = info or {}
     if not Library.ScreenGui then return nil end
@@ -999,7 +1047,7 @@ end
 local ThemeManager = {
     Library = Library, DefaultThemeName = "Violet", CurrentTheme = "Violet",
     BuiltInThemes = {
-        Violet = { BackgroundColor = "#070A1C", SurfaceColor = "#131837", PanelColor = "#1C234C", AccentColor = "#BF5BFF", AccentSecondary = "#4170FF", OutlineColor = "#ADA AFF", FontColor = "#F7F6FF", MutedColor = "#A4A9CA" },
+        Violet = { BackgroundColor = "#070A1C", SurfaceColor = "#131837", PanelColor = "#1C234C", AccentColor = "#BF5BFF", AccentSecondary = "#4170FF", OutlineColor = "#ADAAFF", FontColor = "#F7F6FF", MutedColor = "#A4A9CA" },
         Rose = { BackgroundColor = "#18081C", SurfaceColor = "#33163A", PanelColor = "#4C2051", AccentColor = "#FF5BBE", AccentSecondary = "#8658FF", OutlineColor = "#FFAAE0", FontColor = "#FFF5FC", MutedColor = "#D2A6CA" },
         Ocean = { BackgroundColor = "#05121D", SurfaceColor = "#0D2B3C", PanelColor = "#164051", AccentColor = "#36D6DC", AccentSecondary = "#4782FF", OutlineColor = "#82E4EB", FontColor = "#EEFCFF", MutedColor = "#93BECD" },
         Midnight = { BackgroundColor = "#080912", SurfaceColor = "#16192B", PanelColor = "#232943", AccentColor = "#8190FF", AccentSecondary = "#5368D6", OutlineColor = "#8F98CC", FontColor = "#F5F7FF", MutedColor = "#A1A6C3" },
@@ -1090,6 +1138,8 @@ function ThemeManager:ApplyToGroupbox(group) return self:CreateThemeManager(grou
 
 Library.SaveManager = SaveManager
 Library.ThemeManager = ThemeManager
+Library.CreateSaveManager = function() return SaveManager end
+Library.CreateThemeManager = function() return ThemeManager end
 Library.Toggle = function(_, value) if Library.Window then return Library.Window:Toggle(value) end end
 
 function Library:Unload()
