@@ -1,12 +1,13 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.2.1
+-- Version: 0.2.2
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -41,7 +42,7 @@ local Colors = {
 }
 
 local Library = {
-    Name = "Glass UI", Version = "0.2.1", LocalPlayer = LocalPlayer,
+    Name = "Glass UI", Version = "0.2.2", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -101,10 +102,11 @@ local function glass(parent, size, radius)
             ColorSequenceKeypoint.new(0.52, Colors.SurfaceColor),
             ColorSequenceKeypoint.new(1, Colors.AccentSecondary),
         }),
+        -- Keep enough color in the glass surface to remain readable over bright scenes.
         Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.91),
-            NumberSequenceKeypoint.new(0.5, 0.98),
-            NumberSequenceKeypoint.new(1, 0.94),
+            NumberSequenceKeypoint.new(0, 0.28),
+            NumberSequenceKeypoint.new(0.5, 0.46),
+            NumberSequenceKeypoint.new(1, 0.34),
         }),
     }, frame)
     applyThemeBinding(frame, "BackgroundColor3", "SurfaceColor")
@@ -713,9 +715,72 @@ function Window:AddTab(name, icon, description)
     return tab
 end
 function Window:AddKeyTab(name, icon, description) return self:AddTab(name, icon, description) end
+function Window:UpdateBlur()
+    local effect = self.BlurEffect
+    if not effect or not effect.Parent then return false end
+
+    local shouldBlur = self.Main.Visible and self.BlurEnabled
+    local targetSize = shouldBlur and self.BlurSize or 0
+
+    if shouldBlur then effect.Enabled = true end
+    if self.BlurTween then
+        pcall(function() self.BlurTween:Cancel() end)
+        self.BlurTween = nil
+    end
+
+    if math.abs(effect.Size - targetSize) < 0.05 then
+        effect.Size = targetSize
+        if not shouldBlur then effect.Enabled = false end
+        return true
+    end
+
+    local ok, animation = pcall(function()
+        return TweenService:Create(
+            effect,
+            TweenInfo.new(0.24, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { Size = targetSize }
+        )
+    end)
+
+    if not ok or not animation then
+        effect.Size = targetSize
+        effect.Enabled = shouldBlur
+        return false
+    end
+
+    self.BlurTween = animation
+    animation.Completed:Connect(function()
+        if self.BlurTween == animation then
+            self.BlurTween = nil
+            if not shouldBlur then effect.Enabled = false end
+        end
+    end)
+    animation:Play()
+    return true
+end
+
+function Window:SetBlurEnabled(enabled)
+    self.BlurEnabled = enabled == true
+    self:UpdateBlur()
+    return self.BlurEnabled
+end
+
+function Window:SetBlurSize(size)
+    self.BlurSize = math.clamp(tonumber(size) or 18, 0, 56)
+    self:UpdateBlur()
+    return self.BlurSize
+end
+
 function Window:Toggle(value)
-    self.Main.Visible = value == nil and not self.Main.Visible or value == true
-    return self.Main.Visible
+    local visible
+    if value == nil then
+        visible = not self.Main.Visible
+    else
+        visible = value == true
+    end
+    self.Main.Visible = visible
+    self:UpdateBlur()
+    return visible
 end
 function Window:SetTitle(value) self.TitleLabel.Text = tostring(value) end
 function Window:SetFooter(value) self.FooterLabel.Text = tostring(value) end
@@ -766,7 +831,9 @@ function Library:CreateWindow(info)
     local screen = create("ScreenGui", { Name = "GlassUI", ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 100 }, nil)
     parentGui(screen); Library.ScreenGui = screen
     local main = glass(screen, info.Size or UDim2.fromOffset(760, 550), 16)
-    main.BackgroundColor3 = Colors.BackgroundColor; main.BackgroundTransparency = 0.12
+    -- The background remains translucent, but no longer disappears over light game scenes.
+    main.BackgroundColor3 = Colors.BackgroundColor
+    main.BackgroundTransparency = 0.06
     main.AnchorPoint = Vector2.new(0.5, 0.5); main.Position = info.Position or UDim2.fromScale(0.5, 0.5)
     main.ClipsDescendants = true
     local header = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 52) }, main)
@@ -785,14 +852,55 @@ function Library:CreateWindow(info)
     local sidebar = create("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(12, 66), Size = UDim2.new(0, 155, 1, -100), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2 }, main)
     vertical(sidebar, 4)
     local pageHost = create("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(180, 66), Size = UDim2.new(1, -192, 1, -100) }, main)
-    local footer = text(main, info.Footer or "Glass UI  •  0.2.1", 10, Colors.MutedColor)
+    local footer = text(main, info.Footer or "Glass UI  •  0.2.2", 10, Colors.MutedColor)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
-    local window = setmetatable({ Main = main, Sidebar = sidebar, PageHost = pageHost, TitleLabel = title, FooterLabel = footer, Tabs = {}, ActiveTab = nil, BackgroundImage = create("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 0.8, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 0 }, main) }, Window)
+    local blurEffect
+    local blurOk, blurResult = pcall(function()
+        local effect = Instance.new("BlurEffect")
+        effect.Name = "GlassUI_BackgroundBlur"
+        effect.Size = 0
+        effect.Enabled = false
+        effect.Parent = Lighting
+        return effect
+    end)
+    if blurOk then blurEffect = blurResult end
+
+    local window = setmetatable({
+        Main = main,
+        Sidebar = sidebar,
+        PageHost = pageHost,
+        TitleLabel = title,
+        FooterLabel = footer,
+        Tabs = {},
+        ActiveTab = nil,
+        BlurEffect = blurEffect,
+        BlurEnabled = info.Blur ~= false,
+        BlurSize = math.clamp(tonumber(info.BlurSize) or 18, 0, 56),
+        BackgroundImage = create("ImageLabel", {
+            BackgroundTransparency = 1,
+            ImageTransparency = 0.8,
+            Size = UDim2.fromScale(1, 1),
+            Visible = false,
+            ZIndex = 0,
+        }, main),
+    }, Window)
     window.UIScale = create("UIScale", { Scale = Library.DPIScale or 1 }, main)
+    Library.BlurEffect = blurEffect
     Library.Window = window
+    connect(main:GetPropertyChangedSignal("Visible"), function()
+        if Library.Window == window then
+            window:UpdateBlur()
+        end
+    end)
     window.SearchBox = search
     search:GetPropertyChangedSignal("Text"):Connect(function() Library:UpdateSearch(search.Text) end)
-    close.MouseButton1Click:Connect(function() if info.CloseButtonDestroys then Library:Unload() else main.Visible = false end end)
+    close.MouseButton1Click:Connect(function()
+        if info.CloseButtonDestroys then
+            Library:Unload()
+        else
+            window:Toggle(false)
+        end
+    end)
     local dragging, start, origin = false, nil, nil
     header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true; start = input.Position; origin = main.Position end
@@ -828,6 +936,7 @@ function Library:CreateWindow(info)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then resizing = false end
     end)
     main.Visible = info.AutoShow ~= false
+    window:UpdateBlur()
     Library.ToggleKeybind = info.ToggleKeybind or Library.ToggleKeybind
     return window
 end
@@ -1512,6 +1621,13 @@ function Library:Unload()
     for _, callback in ipairs(Library.UnloadCallbacks) do safe(callback) end
     for _, toast in ipairs(Library.Notifications) do if toast.Destroy then toast:Destroy() end end
     for _, connection in ipairs(Library.Connections) do if connection.Connected then connection:Disconnect() end end
+    if Library.Window and Library.Window.BlurTween then
+        pcall(function() Library.Window.BlurTween:Cancel() end)
+    end
+    if Library.BlurEffect then
+        pcall(function() Library.BlurEffect:Destroy() end)
+        Library.BlurEffect = nil
+    end
     if Library.ScreenGui then Library.ScreenGui:Destroy() end
     table.clear(Library.Connections); table.clear(Library.ThemeBindings)
     table.clear(Library.Options); table.clear(Library.Toggles); table.clear(Library.Tabs)

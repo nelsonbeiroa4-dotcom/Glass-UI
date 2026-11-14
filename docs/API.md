@@ -16,6 +16,8 @@ local Window = Library:CreateWindow({
     Size = UDim2.fromOffset(760, 550),
     Position = UDim2.fromScale(0.5, 0.5),
     AutoShow = true,
+    Blur = true,       -- enables a Lighting BlurEffect while the window is open
+    BlurSize = 18,     -- 0–56
     ToggleKeybind = Enum.KeyCode.RightControl,
     CloseButtonDestroys = false,
 })
@@ -27,8 +29,10 @@ Window:SetTitle(text)
 Window:SetFooter(text)
 Window:SetBackgroundImage(asset)
 Window:SetSidebarCompacted(boolean)
+Window:SetBlurEnabled(boolean)
+Window:SetBlurSize(number) -- 0–56
 
-The window can be dragged from its header and resized from the lower-right corner. The search field filters control labels using a simple case-insensitive substring match.
+The window can be dragged from its header and resized from the lower-right corner. When visible, it enables a dedicated Lighting BlurEffect behind the GUI. The blur affects the 3D scene, not other ScreenGui elements. Set Blur = false to disable it. The search field filters control labels using a simple case-insensitive substring match.
 
 Tabs:
 - AddLeftGroupbox(name, icon?, visible?, collapsed?, disableCollapsing?)

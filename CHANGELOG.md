@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+
+- Added a real Lighting BlurEffect behind the UI while the window is visible.
+- Blur strength animates on open/close and the effect is removed on unload.
+- Increased the opacity of glass surfaces so the interface stays readable over bright scenes.
+
+
 ## 0.2.1
 
 - Fixed child layout inside input, slider and dropdown controls.

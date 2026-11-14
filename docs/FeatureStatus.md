@@ -20,6 +20,7 @@ This file is the source of truth for what the current public distribution actual
 
 ## Simplified implementations
 
+- Background blur is a Lighting effect and applies to the 3D scene globally while the window is visible; it is not an isolated per-window blur.
 - Search is substring-based. It is not Obsidian's fuzzy/global search engine.
 - Floating menus and context menus are basic action surfaces, not a full replacement for Obsidian's pop-out and context-menu lifecycle.
 - The color picker has hex editing and hue selection; it does not yet have a full saturation/value plane or alpha bar.

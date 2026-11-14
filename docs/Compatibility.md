@@ -23,6 +23,10 @@ No library can guarantee compatibility with every executor. Executors may omit f
 
 When filesystem functions are missing, SaveManager retains configuration JSON in session memory. ExportJSON and ImportJSON remain usable. In-memory configs disappear when the script or session ends.
 
+## Background blur
+
+The window creates its own Lighting BlurEffect and animates its Size when the window opens or closes. This blurs the 3D scene behind the GUI; it does not blur other ScreenGui content. The effect is removed by Library:Unload(). Games or environments that disable post-processing may prevent it from appearing.
+
 ## Performance
 
 - No permanent RenderStepped loop is used by the core UI.

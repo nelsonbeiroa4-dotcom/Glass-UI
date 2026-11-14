@@ -30,9 +30,9 @@ Group:AddButton("Notify", function()
     Library:Notify("Glass UI is ready.", 3)
 end)
 
-## Features in 0.2.1
+## Features in 0.2.2
 
-- Draggable, resizable window with a compactable sidebar
+- Draggable, resizable window with a compactable sidebar and animated 3D background blur
 - Tabs, key tabs, left/right groupboxes and nested tabboxes
 - In-window text search
 - Buttons, toggles, checkboxes, inputs, sliders and dropdowns
