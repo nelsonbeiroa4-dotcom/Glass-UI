@@ -836,7 +836,7 @@ function Library:UpdateSearch(query)
         end
         for _, dependency in ipairs(group.DependencyBoxes or {}) do
             local childVisible = scan(dependency)
-            dependency.Holder.Visible = childVisible and matches(dependency.Name or "")
+            dependency.Holder.Visible = childVisible
             if dependency.Holder.Visible then anyVisible = true end
         end
         if group.Type == "Groupbox" then
@@ -1285,16 +1285,52 @@ function ThemeManager:ThemeUpdate() return self:ApplyThemeData(self:BuildThemeDa
 function ThemeManager:CreateThemeManager(group)
     local names = {}
     for name in pairs(self.BuiltInThemes) do table.insert(names, name) end
+    for _, name in ipairs(self:ReloadCustomThemes()) do
+        if not table.find(names, name) then table.insert(names, name) end
+    end
     table.sort(names)
-    group:AddDropdown("ThemeManager_ThemeList", { Text = "Preset", Values = names, Default = self.CurrentTheme, Callback = function(value) self:ApplyTheme(value) end })
+    local list = group:AddDropdown("ThemeManager_ThemeList", {
+        Text = "Preset", Values = names, Default = self.CurrentTheme,
+        Callback = function(value) self:ApplyTheme(value) end,
+    })
     group:AddInput("ThemeManager_CustomThemeName", { Text = "Custom theme", Placeholder = "My theme" })
+    local function refresh()
+        local updated = {}
+        for name in pairs(self.BuiltInThemes) do table.insert(updated, name) end
+        for _, name in ipairs(self:ReloadCustomThemes()) do
+            if not table.find(updated, name) then table.insert(updated, name) end
+        end
+        table.sort(updated)
+        list:SetValues(updated)
+    end
     group:AddButton("Save current theme", function()
         local input = Library.Options.ThemeManager_CustomThemeName
-        local ok, err = self:SaveCustomTheme(input and input.Value or "")
+        local name = input and input.Value or ""
+        local ok, err = self:SaveCustomTheme(name)
         Library:Notify(ok and "Theme saved" or tostring(err))
+        if ok then refresh(); list:SetValue(name) end
     end)
+    group:AddButton("Set selected as default", function()
+        local selected = list.Value
+        local ok, err = self:SetDefaultTheme(selected)
+        Library:Notify(ok and "Default theme updated" or tostring(err))
+    end)
+    group:AddButton("Delete selected custom theme", function()
+        local selected = list.Value
+        if not selected or self.BuiltInThemes[selected] then
+            Library:Notify("Select a custom theme first.")
+            return
+        end
+        self:Delete(selected)
+        refresh()
+        Library:Notify("Theme deleted: " .. selected)
+    end)
+    group:AddButton("Refresh themes", refresh)
     for _, key in ipairs({ "AccentColor", "AccentSecondary", "BackgroundColor", "SurfaceColor", "PanelColor", "OutlineColor", "FontColor" }) do
-        group:AddLabel(key):AddColorPicker("Theme_" .. key, { Title = key, Default = Colors[key], Callback = function(value) Library:SetTheme({ [key] = value }) end })
+        group:AddLabel(key):AddColorPicker("Theme_" .. key, {
+            Title = key, Default = Colors[key],
+            Callback = function(value) Library:SetTheme({ [key] = value }) end,
+        })
     end
     return group
 end
