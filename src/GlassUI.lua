@@ -1,6 +1,6 @@
 -- Glass UI | Roblox Luau interface toolkit
 -- A single-file library with an optional capability layer for executor APIs.
--- Version: 0.2.4
+-- Version: 0.2.5
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -18,20 +18,6 @@ local function global(name)
     end)
     return ok and value or nil
 end
-
-local Compat = {
-    gethui = global("gethui"),
-    protectgui = global("protectgui") or (global("syn") and global("syn").protect_gui),
-    writefile = global("writefile"), readfile = global("readfile"),
-    isfile = global("isfile"), makefolder = global("makefolder"),
-    isfolder = global("isfolder"), listfiles = global("listfiles"),
-    delfile = global("delfile"), setclipboard = global("setclipboard"),
-    ExecutorName = executorName, ExecutorVersion = executorVersion,
-    IsSupported = executorSupported, DetectionMethod = executorDetectionMethod,
-    SupportedExecutors = SupportedExecutorNames,
-    BlurMode = executorSupported and "disabled" or "global-fallback",
-}
-
 
 local SupportedExecutorData = {
     { Name = "Xeno", Aliases = { "xeno" }, Markers = { "xeno" } },
@@ -111,7 +97,20 @@ end
 
 local executorName, executorVersion, executorSupported, executorDetectionMethod = detectExecutor()
 
-local Colors = {
+local Compat: {[string]: any} = {
+    gethui = global("gethui"),
+    protectgui = global("protectgui") or (global("syn") and global("syn").protect_gui),
+    writefile = global("writefile"), readfile = global("readfile"),
+    isfile = global("isfile"), makefolder = global("makefolder"),
+    isfolder = global("isfolder"), listfiles = global("listfiles"),
+    delfile = global("delfile"), setclipboard = global("setclipboard"),
+    ExecutorName = executorName, ExecutorVersion = executorVersion,
+    IsSupported = executorSupported, DetectionMethod = executorDetectionMethod,
+    SupportedExecutors = SupportedExecutorNames,
+    BlurMode = executorSupported and "disabled" or "global-fallback",
+}
+
+local Colors: {[string]: any} = {
     BackgroundColor = Color3.fromRGB(7, 10, 28),
     SurfaceColor = Color3.fromRGB(19, 24, 55),
     PanelColor = Color3.fromRGB(28, 35, 76),
@@ -124,8 +123,8 @@ local Colors = {
     SuccessColor = Color3.fromRGB(91, 224, 174),
 }
 
-local Library = {
-    Name = "Glass UI", Version = "0.2.4", LocalPlayer = LocalPlayer,
+local Library: {[string]: any} = {
+    Name = "Glass UI", Version = "0.2.5", LocalPlayer = LocalPlayer,
     Compatibility = Compat, Theme = Colors, Options = {}, Toggles = {},
     Buttons = {}, Labels = {}, Tabs = {}, Notifications = {},
     Connections = {}, UnloadCallbacks = {}, ThemeBindings = {},
@@ -926,7 +925,7 @@ function Library:CreateWindow(info)
     local sidebar = create("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(12, 66), Size = UDim2.new(0, 155, 1, -100), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2 }, main)
     vertical(sidebar, 4)
     local pageHost = create("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(180, 66), Size = UDim2.new(1, -192, 1, -100) }, main)
-    local footer = text(main, info.Footer or "Glass UI  •  0.2.4", 10, Colors.MutedColor)
+    local footer = text(main, info.Footer or "Glass UI  •  0.2.5", 10, Colors.MutedColor)
     footer.Position = UDim2.new(0, 17, 1, -23); footer.Size = UDim2.new(1, -34, 0, 14); footer.AutomaticSize = Enum.AutomaticSize.None
     local window = setmetatable({
         Main = main,
@@ -1370,12 +1369,16 @@ function SaveManager:SaveJSON(name)
     for index, option in pairs(Library.Toggles) do
         if not self.Ignore[index] and option.Save ~= false then table.insert(data.objects, { idx = index, type = option.Type, value = option.Value }) end
     end
-    local ok, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+    local ok, encoded = pcall(function()
+        return HttpService:JSONEncode(data)
+    end)
     if not ok then return "", false, tostring(encoded) end
     return encoded, true
 end
 function SaveManager:LoadJSON(content)
-    local ok, data = pcall(HttpService.JSONDecode, HttpService, content)
+    local ok, data = pcall(function()
+        return HttpService:JSONDecode(content)
+    end)
     if not ok or type(data) ~= "table" or type(data.objects) ~= "table" then return false, "Invalid JSON configuration" end
     for _, item in ipairs(data.objects) do
         local option = Library.Options[item.idx] or Library.Toggles[item.idx]
@@ -1396,7 +1399,12 @@ function SaveManager:Save(name)
     if name == "" or name:lower() == "autoload" then return false, "Invalid config name" end
     local content, ok, err = self:SaveJSON(name)
     if not ok then return false, err end
-    if canWrite() then self:CheckFolderTree(); local wrote, writeErr = pcall(Compat.writefile, self:GetPath(name), content); if not wrote then return false, tostring(writeErr) end
+    if canWrite() then
+        self:CheckFolderTree()
+        local wrote, writeErr = pcall(function()
+            return Compat.writefile(self:GetPath(name), content)
+        end)
+        if not wrote then return false, tostring(writeErr) end
     else self.Memory[name] = content; Library.ConfigStore[name] = content end
     return true
 end
@@ -1549,7 +1557,9 @@ function ThemeManager:SaveCustomTheme(name)
         local path = self.Library.SaveManager.Folder .. "/Themes"
         if type(Compat.makefolder) == "function" and type(Compat.isfolder) == "function" then local ok, exists = pcall(Compat.isfolder, path); if not ok or not exists then pcall(Compat.makefolder, path) end end
         local encoded = HttpService:JSONEncode(data)
-        local ok, err = pcall(Compat.writefile, path .. "/" .. name .. ".json", encoded)
+        local ok, err = pcall(function()
+            return Compat.writefile(path .. "/" .. name .. ".json", encoded)
+        end)
         if not ok then return false, tostring(err) end
     end
     return true
@@ -1591,7 +1601,9 @@ function ThemeManager:SetDefaultTheme(name)
     self.DefaultThemeName = name
     if canWrite() then
         self.Library.SaveManager:CheckFolderTree()
-        pcall(Compat.writefile, self.Library.SaveManager.Folder .. "/default-theme.txt", name)
+        pcall(function()
+            return Compat.writefile(self.Library.SaveManager.Folder .. "/default-theme.txt", name)
+        end)
     end
     return true
 end

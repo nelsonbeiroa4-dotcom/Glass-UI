@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.5
+
+- Fixed Luau dynamic-table diagnostics for Library, Compat and Colors.
+- Initialized executor detection before constructing the Compatibility table.
+- Rewrote multi-argument JSON and file-write pcall calls as closures to avoid analyzer argument-count warnings.
+- Kept src/GlassUI.lua and dist/GlassUI.lua synchronized.
+
 ## 0.2.4
 
 - Added explicit executor identification using identifyexecutor/getexecutorname plus selected environment markers.

@@ -30,7 +30,7 @@ Group:AddButton("Notify", function()
     Library:Notify("Glass UI is ready.", 3)
 end)
 
-## Features in 0.2.4
+## Features in 0.2.5
 
 - Draggable, resizable window with a compactable sidebar
 - Tabs, key tabs, left/right groupboxes and nested tabboxes
@@ -43,6 +43,7 @@ end)
 - SaveManager with config list, import/export, subfolders and autoload
 - ThemeManager with built-in and custom palettes
 - Executor-name detection (identifyexecutor/getexecutorname) and PlayerGui fallback
+- Explicit dynamic-field typing for editor compatibility; corrected executor detection initialization and JSON/filesystem protected calls
 - Recognized executor names: Xeno, Solara, Wave, Delta, Swift, Potassium, Synapse Z, SirHurt, Real, Cosmic, Volt, Velocity, Madium, Volcano, KRNL, Fluxus, Electron, Codex, Arceus X, Vega X, Ronix, Hydrogen, MacSploit, Opiumware, Appleware, plus legacy Synapse X, Trigon and Script-Ware
 - Explicit cleanup through Library:Unload()
 

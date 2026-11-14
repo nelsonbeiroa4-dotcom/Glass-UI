@@ -1,5 +1,11 @@
 # Compatibility notes
 
+## Editor and type-checker compatibility
+
+The Library and Compat tables are explicitly typed as string-keyed dynamic dictionaries because the public API adds runtime fields such as ScreenGui, Window and DefaultWatermark after initial construction. This prevents Luau editor diagnostics from treating those fields as missing keys.
+
+The executor detector is initialized before Compat is constructed, so Compatibility.ExecutorName and Compatibility.IsSupported contain the detected values rather than nil placeholders. Protected JSON and file-writing calls use closures to avoid static pcall argument-count diagnostics in editors with narrower function signatures.
+
 Glass UI is designed to run without Potassium and uses Roblox GUI primitives for its core interface.
 
 ## Standard Roblox layer
