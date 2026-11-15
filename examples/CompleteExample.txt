@@ -1,7 +1,3 @@
---[[
-    Glass UI v0.3.1 - Complete Example
-    Based on Obsidian UI Library with a purple glassmorphism theme.
-]]
 local Root = "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/"
 
 local function LoadModule(Path)
