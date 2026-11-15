@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3
+
+- Increased the translucency of theme-backed surfaces to match the glass treatment used in Lonely Spy.
+- Added `Library.Compatibility.DisableGlobalBlur` so scripts with a local glass-blur implementation can disable the whole-scene fallback.
+
 ## 0.3.2
 
 - Window, border and groupbox gradients now derive from the active scheme.

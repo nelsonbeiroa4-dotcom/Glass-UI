@@ -1,5 +1,5 @@
 --[[
-    Glass UI v0.3.2
+    Glass UI v0.3.3
     Obsidian-based Roblox UI library with a custom purple glassmorphism theme.
     Upstream: https://github.com/deividcomsono/Obsidian
     Original Obsidian source is distributed under the MIT license.
@@ -172,7 +172,7 @@ end
 
 local Library = {
     Name = "Glass UI",
-    Version = "0.3.2",
+    Version = "0.3.3",
     LocalPlayer = LocalPlayer,
     IsRobloxFocused = true,
 
@@ -414,7 +414,7 @@ Library.Compatibility = {
 
 local FallbackBlur: BlurEffect? = nil
 local function SetFallbackBlur(Visible: boolean)
-    if ExecutorSupported then
+    if ExecutorSupported or Library.Compatibility.DisableGlobalBlur == true then
         if FallbackBlur then
             FallbackBlur:Destroy()
             FallbackBlur = nil
@@ -1770,9 +1770,9 @@ local function New(ClassName: string, Properties: { [string]: any }): any
     -- Glass surfaces retain explicit control transparency; only theme containers are tinted.
     if Instance:IsA("GuiObject") and Properties.BackgroundTransparency == nil then
         if Properties.BackgroundColor3 == "BackgroundColor" then
-            Instance.BackgroundTransparency = 0.20
+            Instance.BackgroundTransparency = 0.46
         elseif Properties.BackgroundColor3 == "MainColor" then
-            Instance.BackgroundTransparency = 0.28
+            Instance.BackgroundTransparency = 0.58
         end
     end
 
