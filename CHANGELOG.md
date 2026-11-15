@@ -1,3 +1,15 @@
+# Changelog
+
+## 0.3.0
+
+- Rebased the library on the upstream Obsidian implementation instead of the incomplete custom UI.
+- Restored Obsidian's actual window, tabs, groupboxes, tabboxes, controls, notifications, dialogs, keybind menus, search and interactions.
+- Added a purple glassmorphism palette, translucent theme surfaces, dark gradients, neon accent border, rounded corners and more generous layout spacing.
+- Changed default window size to 960×620 and adjusted sidebar width/tab spacing.
+- Added ThemeManager and SaveManager modules based on the upstream add-ons.
+- Added executor detection and a global blur fallback for unrecognized environments; cleanup runs when hidden or unloaded.
+- Included the upstream MIT license as LICENSE-OBSIDIAN.
+
 # Glass UI
 
 ## 0.2.8

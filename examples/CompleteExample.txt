@@ -1,170 +1,138 @@
 --[[
-    Glass UI - Complete Example
-    Current distribution:
-    https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua
+    Glass UI v0.3.0 - Complete Example
+    Based on Obsidian UI Library with a purple glassmorphism theme.
 ]]
+local Root = "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/"
 
-local Library = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua"
-))()
+local function LoadModule(Path)
+    local Source = game:HttpGet(Root .. Path)
+    local Chunk, CompileError = loadstring(Source)
+    assert(Chunk, CompileError or ("Could not compile " .. Path))
+    return Chunk()
+end
 
+local Library = LoadModule("dist/GlassUI.lua")
+local ThemeManager = LoadModule("addons/ThemeManager.lua")
+local SaveManager = LoadModule("addons/SaveManager.lua")
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+ThemeManager:SetFolder("GlassUI")
+SaveManager:SetFolder("GlassUI")
+
+print("[Glass UI] Version:", Library.Version)
 print("[Glass UI] Executor:", Library.Compatibility.ExecutorName)
 print("[Glass UI] Recognized:", Library.Compatibility.IsSupported)
 
 local Window = Library:CreateWindow({
-    Title = "Glass UI | Example",
-    Footer = "Glass UI • Example build",
-    Size = UDim2.fromOffset(780, 560),
+    Title = "Glass UI",
+    Footer = "Glass UI v0.3.0  •  RightControl to hide/show",
+    Size = UDim2.fromOffset(960, 620),
+    Center = true,
     AutoShow = true,
+    Resizable = true,
+    ShowCustomCursor = true,
     ToggleKeybind = Enum.KeyCode.RightControl,
 })
 
--- MAIN
-local Main = Window:AddTab("Main", "house")
-local General = Main:AddLeftGroupbox("General")
-local Controls = Main:AddRightGroupbox("Controls")
+local Tabs = {
+    Home = Window:AddTab("Home", "house"),
+    Visuals = Window:AddTab("Visuals", "eye"),
+    Settings = Window:AddTab("Settings", "settings"),
+}
 
-General:AddLabel({
-    Text = "A compact glassmorphism UI built from a small, consistent API.",
-    DoesWrap = true,
+local Welcome = Tabs.Home:AddLeftGroupbox({
+    Name = "Welcome",
+    Description = "Obsidian controls with the Glass UI visual theme.",
+    IconName = "layout-dashboard",
+})
+Welcome:AddLabel("Glass UI is running. Drag the title bar to move the window and use RightControl to hide or show it.")
+Welcome:AddButton({
+    Text = "Test notification",
+    Func = function()
+        Library:Notify("Glass UI is working correctly.", 3)
+    end,
 })
 
-General:AddButton("Show notification", function()
-    Library:Notify({
-        Title = "Glass UI",
-        Description = "The notification stack is working.",
-        Time = 4,
-    })
-end)
-
-General:AddToggle("ExampleToggle", {
+local Status = Tabs.Home:AddRightGroupbox({
+    Name = "Status",
+    Description = "Example toggles",
+    IconName = "activity",
+})
+Status:AddToggle("ExampleToggle", {
     Text = "Enable example",
     Default = false,
-    Callback = function(value)
-        print("Example toggle:", value)
+    Callback = function(Value)
+        print("Example toggle:", Value)
     end,
-}):AddColorPicker("ExampleToggleColor", {
-    Title = "Toggle color",
-    Default = Color3.fromRGB(191, 91, 255),
+})
+Status:AddToggle("SecondToggle", {
+    Text = "Enable second option",
+    Default = true,
+    Callback = function(Value)
+        print("Second option:", Value)
+    end,
 })
 
-General:AddToggle("DependentToggle", {
-    Text = "Show advanced options",
-    Default = false,
+local Controls = Tabs.Visuals:AddLeftGroupbox({
+    Name = "Controls",
+    IconName = "sliders-horizontal",
 })
-
-local Dependent = General:AddDependencyBox()
-Dependent:SetupDependencies({
-    { Library.Toggles.DependentToggle, true },
-})
-Dependent:AddSlider("AdvancedAmount", {
-    Text = "Advanced amount",
-    Min = 0,
-    Max = 100,
-    Default = 35,
-    Rounding = 0,
-})
-
--- INPUTS AND SELECTION
-Controls:AddSlider("ExampleSlider", {
+Controls:AddSlider("Intensity", {
     Text = "Intensity",
+    Default = 50,
     Min = 0,
     Max = 100,
-    Default = 50,
-    Suffix = "%",
     Rounding = 0,
-    Callback = function(value)
-        print("Slider:", value)
+    Suffix = "%",
+    Callback = function(Value)
+        print("Intensity:", Value)
     end,
 })
-
 Controls:AddDropdown("Mode", {
-    Text = "Select mode",
-    Values = { "Legit", "Default", "Custom" },
+    Text = "Mode",
+    Values = { "Default", "Soft", "Strong" },
     Default = "Default",
-    Callback = function(value)
-        print("Mode:", value)
+    Callback = function(Value)
+        print("Mode:", Value)
     end,
 })
 
-Controls:AddDropdown("MultiModes", {
-    Text = "Multiple modes",
-    Values = { "A", "B", "C", "D" },
-    Multi = true,
-    Default = { "A" },
-    Callback = function(values)
-        print("Selected:", table.concat(values, ", "))
-    end,
+local Inputs = Tabs.Visuals:AddRightGroupbox({
+    Name = "Inputs",
+    IconName = "list-filter",
 })
-
-Controls:AddInput("PlayerName", {
-    Text = "Text input",
-    Placeholder = "Type something...",
+Inputs:AddInput("PlayerName", {
+    Text = "Player name",
+    Placeholder = "Type a name...",
     Default = "",
-    Finished = true,
-    Callback = function(value)
-        print("Input:", value)
+    Callback = function(Value)
+        print("Name:", Value)
     end,
 })
-
-Controls:AddColorPicker("StandaloneColor", {
-    Title = "Standalone color",
-    Default = Color3.fromRGB(80, 150, 255),
+local AccentToggle = Inputs:AddToggle("UseAccent", {
+    Text = "Enable accent preview",
+    Default = true,
 })
-
-Controls:AddKeyPicker("ExampleKey", {
-    Text = "Example key",
+AccentToggle:AddColorPicker("AccentColor", {
+    Title = "Accent color",
+    Default = Color3.fromRGB(168, 85, 247),
+    Callback = function(Value)
+        print("Accent color:", Value)
+    end,
+})
+Inputs:AddKeyPicker("ExampleKey", {
+    Text = "Toggle key",
     Default = "G",
     Mode = "Toggle",
-    Callback = function(active)
-        print("Key state:", active)
+    Callback = function(Value)
+        print("Key state:", Value)
     end,
 })
 
-Controls:AddDivider("Media")
-Controls:AddImage("ExampleImage", {
-    Image = "rbxassetid://0",
-    Height = 100,
-})
+ThemeManager:ApplyToTab(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+Library:Notify("Glass UI v0.3.0 loaded.", 4)
 
--- VISUALS AND NESTED TABS
-local Visuals = Window:AddTab("Visuals", "eye", "Media and visual elements")
-local VisualGroup = Visuals:AddLeftGroupbox("Viewport")
-VisualGroup:AddViewport("ExampleViewport", {
-    Object = workspace:FindFirstChild("Part"),
-    Clone = true,
-    Height = 160,
-})
-
-local Sections = Visuals:AddRightTabbox("Sections")
-local First = Sections:AddTab("First")
-First:AddToggle("SubToggle", { Text = "Sub-tab toggle", Default = false })
-
-local Second = Sections:AddTab("Second")
-Second:AddButton("Second page button", function()
-    Library:Notify("This button belongs to the second sub-tab.", 3)
-end)
-
--- APPEARANCE AND CONFIGURATIONS
-local Settings = Window:AddTab("Settings", "settings")
-Library.ThemeManager:ApplyToTab(Settings)
-Library.SaveManager:BuildConfigSection(Settings)
-
-local Watermark = Library:CreateWatermark({
-    Text = "Glass UI • Example",
-    Visible = true,
-    Position = UDim2.fromOffset(14, 14),
-})
-
-Library:Notify({
-    Title = "Loaded",
-    Description = "Glass UI is ready.",
-    Time = 3,
-})
-
--- Optional autoload:
--- local loaded, reason = Library.SaveManager:LoadAutoloadConfig()
--- if not loaded then warn(reason) end
-
--- Cleanup when the script is stopped:
+-- Optional cleanup:
 -- Library:Unload()

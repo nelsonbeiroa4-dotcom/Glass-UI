@@ -1,72 +1,97 @@
 # Glass UI
 
-Glass UI is a Roblox Luau interface library with a dark glassmorphism style. It uses translucent surfaces, restrained gradients and a compact two-column layout.
+Glass UI is a glassmorphism-themed fork of [Obsidian UI Library](https://github.com/deividcomsono/Obsidian), preserving its real window, tab, groupbox, tabbox, control, notification, popup and interaction systems.
 
-The library has its own implementation and does not require Potassium or Obsidian.
+The visual direction follows the purple glass dashboard reference: deep violet-tinted surfaces, a fine neon-purple edge, rounded cards, a wider sidebar, clearer padding and more generous spacing.
 
 ## Quick start
 
+```lua
 local Library = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/dist/GlassUI.lua"
 ))()
 
 local Window = Library:CreateWindow({
     Title = "My Script",
-    Size = UDim2.fromOffset(760, 550),
+    Footer = "Glass UI • RightControl to hide/show",
+    Size = UDim2.fromOffset(960, 620),
+    Center = true,
+    AutoShow = true,
+    Resizable = true,
 })
 
-local Main = Window:AddTab("Main", "house")
-local Group = Main:AddLeftGroupbox("General")
+local Main = Window:AddTab("Home", "house")
+local General = Main:AddLeftGroupbox("General")
 
-Group:AddToggle("Enabled", {
-    Text = "Enable feature",
-    Default = false,
-    Callback = function(value)
-        print(value)
+General:AddButton({
+    Text = "Test notification",
+    Func = function()
+        Library:Notify("Glass UI is working.", 3)
     end,
 })
 
-Group:AddButton("Notify", function()
-    Library:Notify("Glass UI is ready.", 3)
-end)
+General:AddToggle("Enabled", {
+    Text = "Enable feature",
+    Default = false,
+    Callback = function(value)
+        print("Enabled:", value)
+    end,
+})
+```
 
-## Features in 0.2.7
+## Optional add-ons
 
-- Draggable, resizable window with a compactable sidebar
-- Tabs, key tabs, left/right groupboxes and nested tabboxes
-- In-window text search
-- Buttons, toggles, checkboxes, inputs, sliders and dropdowns
-- Color pickers and key pickers
-- Labels, dividers and dependency boxes
-- Image, viewport, video and UI passthrough controls
-- Notifications, dialogs, loading panels and watermarks
-- SaveManager with config list, import/export, subfolders and autoload
-- ThemeManager with built-in and custom palettes
-- Executor-name detection (identifyexecutor/getexecutorname) and PlayerGui fallback
-- Explicit dynamic-field typing for editor compatibility; corrected executor detection initialization and JSON/filesystem protected calls
-- Recognized executor names: Xeno, Solara, Wave, Delta, Swift, Potassium, Synapse Z, SirHurt, Real, Cosmic, Volt, Velocity, Madium, Volcano, KRNL, Fluxus, Electron, Codex, Arceus X, Vega X, Ronix, Hydrogen, MacSploit, Opiumware, Appleware, plus legacy Synapse X, Trigon and Script-Ware
-- Explicit cleanup through Library:Unload()
+ThemeManager and SaveManager remain separate modules, as in upstream Obsidian:
+
+```lua
+local Root = "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/"
+
+local Library = loadstring(game:HttpGet(Root .. "dist/GlassUI.lua"))()
+local ThemeManager = loadstring(game:HttpGet(Root .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(Root .. "addons/SaveManager.lua"))()
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+ThemeManager:SetFolder("GlassUI")
+SaveManager:SetFolder("GlassUI")
+```
+
+Then apply them to a Settings tab:
+```lua
+local Settings = Window:AddTab("Settings", "settings")
+ThemeManager:ApplyToTab(Settings)
+SaveManager:BuildConfigSection(Settings)
+```
+
+## Included
+
+- Obsidian's real window, tabs, key tabs, groupboxes, tabboxes and pop-outs.
+- Search, dependencies, buttons, toggles, checkboxes, inputs, sliders, dropdowns, color pickers and key pickers.
+- Notifications, dialogs, keybind menus, loading panels, tooltips and cursor support.
+- Optional ThemeManager and SaveManager modules.
+- Glass UI palette, translucent surfaces, gradients, rounded panels and accent outlines.
+- Executor recognition for Xeno, Solara, Wave, Delta, Swift, Potassium, Synapse Z, SirHurt, Real, Cosmic, Volt, Velocity, Madium, Volcano, KRNL, Fluxus, Electron, Codex, Arceus X, Vega X, Ronix, Hydrogen, MacSploit, Opiumware, Appleware, Synapse X, Trigon and Script-Ware.
+
+## Blur behavior
+
+Recognized executor names do not receive a global blur. Unknown or unrecognized environments receive a `Lighting.BlurEffect` while the window is visible; it is removed when the window is hidden or unloaded.
+
+This fallback blurs the entire 3D scene, not just the area behind the panel. Roblox's standard ScreenGui API does not expose a clipped live backdrop blur for one rectangular GUI. The normal glass look is therefore created with tinted transparency, gradients and borders.
+
+Executor recognition uses `identifyexecutor()` or `getexecutorname()`, with a few environment markers as fallback. Recognition does not imply every build has been runtime-tested.
 
 ## Repository layout
 
-- src/GlassUI.lua — readable source
-- dist/GlassUI.lua — single-file loadstring distribution
-- examples/CompleteExample.txt — full usage example
-- docs/API.md — API reference
-- docs/Compatibility.md — executor capability and fallback notes
-- docs/FeatureStatus.md — implemented features and current boundaries
-- CHANGELOG.md — release notes
+- `src/GlassUI.lua` — readable source
+- `dist/GlassUI.lua` — single-file distribution
+- `addons/ThemeManager.lua` — Obsidian ThemeManager with Glass default palette
+- `addons/SaveManager.lua` — Obsidian SaveManager
+- `examples/CompleteExample.txt` — full example
+- `docs/API.md` — API and usage notes
+- `docs/Compatibility.md` — executor and blur behavior
+- `docs/FeatureStatus.md` — feature coverage
+- `LICENSE-OBSIDIAN` — upstream MIT license
 
-## Compatibility
+## Credits
 
-The GUI itself uses Roblox services. Executor-only APIs are optional. Filesystem persistence requires file APIs; without those, SaveManager stores settings in session memory and supports JSON import/export.
-
-Glass UI detects the executor through identifyexecutor()/getexecutorname(), with environment-marker fallbacks. The names above are recognized by the detector; this list does not claim every build has been runtime-tested. Unknown or unrecognized environments still render the GUI, but receive a whole-game Lighting blur while the window is visible. Recognized executors do not receive that global blur. Executor APIs, GUI parenting and HttpGet behavior can vary between builds.
-
-## Performance and visual design
-
-The core does not run a permanent RenderStepped loop. It uses shared input listeners, short tweens and on-demand theme updates. Translucency, gradients and outlines provide a frosted-glass appearance on recognized executors. Since Roblox has no per-window live backdrop blur, unidentified environments use a global Lighting blur fallback while the GUI is open; it is removed when the window closes or the library unloads.
-
-## Status
-
-Glass UI is under active development. The API is independent and intended to grow through tested additions. This release is a functional baseline, not a promise of full one-to-one parity with every internal Obsidian feature. The compatibility and feature-status documents describe the current limits.
+The core is based on [deividcomsono/Obsidian](https://github.com/deividcomsono/Obsidian) and retains its MIT licensing terms. This repository's changes focus on the Glass UI visual theme, window defaults and compatibility fallback.
