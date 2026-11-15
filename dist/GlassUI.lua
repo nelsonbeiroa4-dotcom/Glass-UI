@@ -1,3 +1,12 @@
+--[[
+    Glass UI v0.3.2
+    Obsidian-based Roblox UI library with a custom purple glassmorphism theme.
+    Upstream: https://github.com/deividcomsono/Obsidian
+    Original Obsidian source is distributed under the MIT license.
+    Glass UI modifications: theme palette, glass surfaces, spacing, window defaults,
+    and executor-aware blur fallback.
+]]
+
 local cloneref = (cloneref or clonereference or function(instance: any)
     return instance
 end)
@@ -163,7 +172,7 @@ end
 
 local Library = {
     Name = "Glass UI",
-    Version = "0.3.1",
+    Version = "0.3.2",
     LocalPlayer = LocalPlayer,
     IsRobloxFocused = true,
 
@@ -12066,10 +12075,15 @@ function Library:CreateWindow(WindowInfo)
         -- Violet frosted shell with a restrained neon edge.
         MainFrame.BackgroundTransparency = 0.20
         New("UIGradient", {
-            Color = ColorSequence.new(
-                Color3.fromRGB(42, 29, 64),
-                Color3.fromRGB(16, 11, 29)
-            ),
+            Color = function()
+                local Background = Library.Scheme.BackgroundColor
+                local Main = Library.Scheme.MainColor
+                local Accent = Library.Scheme.AccentColor
+                return ColorSequence.new(
+                    Background:Lerp(Accent, 0.20),
+                    Background:Lerp(Main, 0.72)
+                )
+            end,
             Rotation = 135,
             Parent = MainFrame,
         })
@@ -12081,10 +12095,14 @@ function Library:CreateWindow(WindowInfo)
             Parent = MainFrame,
         })
         New("UIGradient", {
-            Color = ColorSequence.new(
-                Color3.fromRGB(184, 112, 255),
-                Color3.fromRGB(93, 79, 210)
-            ),
+            Color = function()
+                local Accent = Library.Scheme.AccentColor
+                local Outline = Library.Scheme.OutlineColor
+                return ColorSequence.new(
+                    Accent:Lerp(Color3.new(1, 1, 1), 0.16),
+                    Accent:Lerp(Outline, 0.25)
+                )
+            end,
             Rotation = 25,
             Parent = GlassBorder,
         })
@@ -13783,10 +13801,16 @@ function Library:CreateWindow(WindowInfo)
                 })
                 Library:AddOutline(GroupboxHolder)
                 New("UIGradient", {
-                    Color = ColorSequence.new(
-                        Color3.fromRGB(34, 24, 51),
-                        Color3.fromRGB(19, 14, 31)
-                    ),
+                    Color = function()
+                        local Background = Library.Scheme.BackgroundColor
+                        local Main = Library.Scheme.MainColor
+                        local Accent = Library.Scheme.AccentColor
+                        local Surface = Background:Lerp(Main, 0.48)
+                        return ColorSequence.new(
+                            Surface:Lerp(Accent, 0.08),
+                            Surface:Lerp(Accent, 0.025)
+                        )
+                    end,
                     Rotation = 90,
                     Parent = GroupboxHolder,
                 })

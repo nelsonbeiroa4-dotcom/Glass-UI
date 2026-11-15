@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+- Window, border and groupbox gradients now derive from the active scheme.
+- ThemeManager palette changes recolor the glass gradients instead of leaving purple hard-coded gradients behind.
+- Supports per-script startup palettes such as Lonely's original sage-green and Fantasy theme.
+
 ## 0.3.1
 
 - Fixed the example's groupbox construction to match the actual Obsidian API.
