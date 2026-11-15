@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+- Fixed the example's groupbox construction to match the actual Obsidian API.
+- Added compatibility overloads so AddLeftGroupbox/AddRightGroupbox accept both Obsidian's string signature and an Info table.
+- Enabled label text wrapping in the complete example to prevent narrow layouts from clipping descriptions.
+- Increased the transparency of theme-colored surfaces so the glass effect is visible without sacrificing the dark palette.
+
 ## 0.3.0
 
 - Rebased the library on the upstream Obsidian implementation instead of the incomplete custom UI.

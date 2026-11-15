@@ -1,5 +1,5 @@
 --[[
-    Glass UI v0.3.0 - Complete Example
+    Glass UI v0.3.1 - Complete Example
     Based on Obsidian UI Library with a purple glassmorphism theme.
 ]]
 local Root = "https://raw.githubusercontent.com/nelsonbeiroa4-dotcom/Glass-UI/main/"
@@ -26,7 +26,7 @@ print("[Glass UI] Recognized:", Library.Compatibility.IsSupported)
 
 local Window = Library:CreateWindow({
     Title = "Glass UI",
-    Footer = "Glass UI v0.3.0  •  RightControl to hide/show",
+    Footer = "Glass UI v0.3.1  •  RightControl to hide/show",
     Size = UDim2.fromOffset(960, 620),
     Center = true,
     AutoShow = true,
@@ -41,12 +41,13 @@ local Tabs = {
     Settings = Window:AddTab("Settings", "settings"),
 }
 
-local Welcome = Tabs.Home:AddLeftGroupbox({
+local Welcome = Tabs.Home:AddGroupbox({
+    Side = "Left",
     Name = "Welcome",
     Description = "Obsidian controls with the Glass UI visual theme.",
     IconName = "layout-dashboard",
 })
-Welcome:AddLabel("Glass UI is running. Drag the title bar to move the window and use RightControl to hide or show it.")
+Welcome:AddLabel("Glass UI is running. Drag the title bar to move the window and use RightControl to hide or show it.", true)
 Welcome:AddButton({
     Text = "Test notification",
     Func = function()
@@ -54,7 +55,8 @@ Welcome:AddButton({
     end,
 })
 
-local Status = Tabs.Home:AddRightGroupbox({
+local Status = Tabs.Home:AddGroupbox({
+    Side = "Right",
     Name = "Status",
     Description = "Example toggles",
     IconName = "activity",
@@ -74,7 +76,8 @@ Status:AddToggle("SecondToggle", {
     end,
 })
 
-local Controls = Tabs.Visuals:AddLeftGroupbox({
+local Controls = Tabs.Visuals:AddGroupbox({
+    Side = "Left",
     Name = "Controls",
     IconName = "sliders-horizontal",
 })
@@ -98,7 +101,8 @@ Controls:AddDropdown("Mode", {
     end,
 })
 
-local Inputs = Tabs.Visuals:AddRightGroupbox({
+local Inputs = Tabs.Visuals:AddGroupbox({
+    Side = "Right",
     Name = "Inputs",
     IconName = "list-filter",
 })
@@ -132,7 +136,7 @@ Inputs:AddKeyPicker("ExampleKey", {
 
 ThemeManager:ApplyToTab(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
-Library:Notify("Glass UI v0.3.0 loaded.", 4)
+Library:Notify("Glass UI v0.3.1 loaded.", 4)
 
 -- Optional cleanup:
 -- Library:Unload()

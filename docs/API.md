@@ -1,6 +1,6 @@
 # API
 
-Glass UI v0.3.0 uses the real [Obsidian UI Library](https://github.com/deividcomsono/Obsidian) as its base. The public API follows Obsidian, not the previous experimental Glass UI implementation.
+Glass UI v0.3.1 uses the real [Obsidian UI Library](https://github.com/deividcomsono/Obsidian) as its base. The public API follows Obsidian, not the previous experimental Glass UI implementation.
 
 For exact option fields and current methods, consult:
 - [Obsidian documentation](https://docs.mspaint.cc/obsidian)

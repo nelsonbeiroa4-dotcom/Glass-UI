@@ -172,7 +172,7 @@ end
 
 local Library = {
     Name = "Glass UI",
-    Version = "0.3.0",
+    Version = "0.3.1",
     LocalPlayer = LocalPlayer,
     IsRobloxFocused = true,
 
@@ -1770,9 +1770,9 @@ local function New(ClassName: string, Properties: { [string]: any }): any
     -- Glass surfaces retain explicit control transparency; only theme containers are tinted.
     if Instance:IsA("GuiObject") and Properties.BackgroundTransparency == nil then
         if Properties.BackgroundColor3 == "BackgroundColor" then
-            Instance.BackgroundTransparency = 0.13
-        elseif Properties.BackgroundColor3 == "MainColor" then
             Instance.BackgroundTransparency = 0.20
+        elseif Properties.BackgroundColor3 == "MainColor" then
+            Instance.BackgroundTransparency = 0.28
         end
     end
 
@@ -12073,7 +12073,7 @@ function Library:CreateWindow(WindowInfo)
         Library:AddOutline(MainFrame)
 
         -- Violet frosted shell with a restrained neon edge.
-        MainFrame.BackgroundTransparency = 0.10
+        MainFrame.BackgroundTransparency = 0.20
         New("UIGradient", {
             Color = ColorSequence.new(
                 Color3.fromRGB(42, 29, 64),
@@ -14174,11 +14174,25 @@ function Library:CreateWindow(WindowInfo)
 
         --// Deprecated - Use Tab:AddGroupbox instead.
         function Tab:AddLeftGroupbox(Name, IconName, Visible, Collapsed, DisableCollapsing)
+            -- Glass UI accepts both Obsidian's legacy string signature and an Info table.
+            if typeof(Name) == "table" then
+                local Info = {}
+                for Key, Value in pairs(Name) do Info[Key] = Value end
+                Info.Side = 1
+                return Tab:AddGroupbox(Info)
+            end
             return Tab:AddGroupbox({ Side = 1, Name = Name, IconName = IconName, Visible = Visible, Collapsed = Collapsed, DisableCollapsing = DisableCollapsing })
         end
 
         --// Deprecated - Use Tab:AddGroupbox instead.
         function Tab:AddRightGroupbox(Name, IconName, Visible, Collapsed, DisableCollapsing)
+            -- Glass UI accepts both Obsidian's legacy string signature and an Info table.
+            if typeof(Name) == "table" then
+                local Info = {}
+                for Key, Value in pairs(Name) do Info[Key] = Value end
+                Info.Side = 2
+                return Tab:AddGroupbox(Info)
+            end
             return Tab:AddGroupbox({ Side = 2, Name = Name, IconName = IconName, Visible = Visible, Collapsed = Collapsed, DisableCollapsing = DisableCollapsing })
         end
 

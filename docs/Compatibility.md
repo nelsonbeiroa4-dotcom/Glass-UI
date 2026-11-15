@@ -1,6 +1,6 @@
 # Compatibility
 
-Glass UI v0.3.0 is built on the upstream Obsidian UI Library and preserves its GUI parenting helpers, including `gethui`, `protectgui`, `syn.protect_gui` and `cloneref` where available, with upstream fallbacks.
+Glass UI v0.3.1 is built on the upstream Obsidian UI Library and preserves its GUI parenting helpers, including `gethui`, `protectgui`, `syn.protect_gui` and `cloneref` where available, with upstream fallbacks.
 
 ## Executor recognition
 
