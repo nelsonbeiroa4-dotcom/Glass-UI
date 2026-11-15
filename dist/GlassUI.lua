@@ -1,12 +1,3 @@
---[[
-    Glass UI v0.3.0
-    Obsidian-based Roblox UI library with a custom purple glassmorphism theme.
-    Upstream: https://github.com/deividcomsono/Obsidian
-    Original Obsidian source is distributed under the MIT license.
-    Glass UI modifications: theme palette, glass surfaces, spacing, window defaults,
-    and executor-aware blur fallback.
-]]
-
 local cloneref = (cloneref or clonereference or function(instance: any)
     return instance
 end)
