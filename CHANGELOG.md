@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.4
+
+- Reworked the glass skin to follow the glass surfaces used in Lonely Spy: translucent pale panels, soft white/accent strokes and responsive controls.
+- Window and groupbox gradients now use a frosted sage tint rather than an opaque dark fill.
+- Dropdowns, sliders, switches and text inputs now use glass-style fills and borders; input fields animate their focus state.
+- Improved ThemeManager default text contrast for the frosted surfaces.
+
+# Changelog
+
 ## 0.3.3
 
 - Increased the translucency of theme-backed surfaces to match the glass treatment used in Lonely Spy.

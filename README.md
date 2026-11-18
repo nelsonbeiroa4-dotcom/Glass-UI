@@ -2,7 +2,7 @@
 
 Glass UI is a glassmorphism-themed fork of [Obsidian UI Library](https://github.com/deividcomsono/Obsidian), preserving its real window, tab, groupbox, tabbox, control, notification, popup and interaction systems.
 
-The visual direction follows the purple glass dashboard reference: deep violet-tinted surfaces, a fine neon-purple edge, rounded cards, a wider sidebar, clearer padding and more generous spacing.
+The visual direction follows the frosted-glass treatment used in Lonely Spy: pale translucent surfaces, soft white-to-accent edge gradients, rounded glass controls and hover feedback.
 
 ## Quick start
 

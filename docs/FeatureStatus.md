@@ -2,7 +2,7 @@
 
 ## Base
 
-Glass UI v0.3.3 uses the upstream Obsidian Library source as its core rather than the previous hand-built GUI. It inherits the upstream architecture for:
+Glass UI v0.3.4 uses the upstream Obsidian Library source as its core rather than the previous hand-built GUI. It inherits the upstream architecture for:
 
 - Window creation, resizing, dragging, visibility, compactable/resizable sidebar and snapping.
 - Tabs, key tabs, tabboxes, groupboxes, nested groupboxes and pop-out groupboxes.
@@ -14,7 +14,7 @@ Glass UI v0.3.3 uses the upstream Obsidian Library source as its core rather tha
 ## Glass UI changes
 
 - Deep violet palette with light lavender text and purple accents.
-- Translucent surfaces and controls.
+- Lonely Spy-style frosted translucent surfaces, gradient borders, glass buttons, inputs, dropdowns, sliders and switches.
 - Dark gradients on the main window and groupbox cards.
 - Accent outline, softened strokes and larger corner radius.
 - Larger default window, adjusted sidebar and more generous groupbox spacing.

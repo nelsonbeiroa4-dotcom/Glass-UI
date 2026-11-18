@@ -172,7 +172,7 @@ end
 
 local Library = {
     Name = "Glass UI",
-    Version = "0.3.3",
+    Version = "0.3.4",
     LocalPlayer = LocalPlayer,
     IsRobloxFocused = true,
 
@@ -292,7 +292,7 @@ local Library = {
         MainColor = Color3.fromRGB(31, 23, 48),
         AccentColor = Color3.fromRGB(168, 85, 247),
         OutlineColor = Color3.fromRGB(70, 50, 98),
-        FontColor = Color3.fromRGB(249, 245, 255),
+        FontColor = Color3.fromRGB(30, 38, 52),
         Font = Font.fromEnum(Enum.Font.Gotham),
 
         RedColor = Color3.fromRGB(255, 50, 50),
@@ -1767,12 +1767,119 @@ local function New(ClassName: string, Properties: { [string]: any }): any
     end
     FillInstance(Properties, Instance)
 
-    -- Glass surfaces retain explicit control transparency; only theme containers are tinted.
-    if Instance:IsA("GuiObject") and Properties.BackgroundTransparency == nil then
-        if Properties.BackgroundColor3 == "BackgroundColor" then
-            Instance.BackgroundTransparency = 0.46
-        elseif Properties.BackgroundColor3 == "MainColor" then
-            Instance.BackgroundTransparency = 0.58
+    -- Lonely Spy glass skin: pale translucent surfaces, glass controls and responsive hover.
+    local SurfaceKey = Properties.BackgroundColor3
+    if Instance:IsA("GuiObject")
+        and Properties.BackgroundTransparency == nil
+        and (SurfaceKey == "BackgroundColor" or SurfaceKey == "MainColor") then
+
+        local White = Color3.fromRGB(255, 255, 255)
+        local Blend = SurfaceKey == "BackgroundColor" and 0.70 or 0.82
+        local Alpha = 0.50
+
+        if Instance:IsA("TextButton") then
+            Alpha = 0.58
+        elseif Instance:IsA("TextBox") then
+            Alpha = 0.50
+            Instance.TextXAlignment = Enum.TextXAlignment.Left
+        elseif Instance:IsA("ScrollingFrame") then
+            Alpha = 0.54
+            if Properties.ScrollingEnabled ~= false then
+                Instance.ScrollBarThickness = math.max(Instance.ScrollBarThickness, 4)
+                Instance.ScrollBarImageColor3 = Library.Scheme.AccentColor
+                Instance.ScrollBarImageTransparency = 0.38
+            end
+        end
+
+        local function GetGlassSurfaceColor()
+            return Library.Scheme[SurfaceKey]:Lerp(White, Blend)
+        end
+
+        Instance.BackgroundColor3 = GetGlassSurfaceColor()
+        Instance.BackgroundTransparency = Alpha
+
+        local Registered = Library.Registry[Instance]
+        if Registered and Registered.BackgroundColor3 ~= nil then
+            Registered.BackgroundColor3 = GetGlassSurfaceColor
+        end
+
+        if Instance:IsA("TextButton") then
+            Instance.AutoButtonColor = false
+            local BaseAlpha = Alpha
+            local function AnimateAlpha(Target)
+                if not Instance.Parent then return end
+                TweenService:Create(
+                    Instance,
+                    TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                    { BackgroundTransparency = Target }
+                ):Play()
+            end
+            Instance.MouseEnter:Connect(function()
+                AnimateAlpha(math.clamp(BaseAlpha - 0.12, 0, 1))
+            end)
+            Instance.MouseLeave:Connect(function()
+                AnimateAlpha(BaseAlpha)
+            end)
+            Instance.MouseButton1Down:Connect(function()
+                AnimateAlpha(math.clamp(BaseAlpha - 0.24, 0, 1))
+            end)
+            Instance.MouseButton1Up:Connect(function()
+                AnimateAlpha(math.clamp(BaseAlpha - 0.12, 0, 1))
+            end)
+        end
+    end
+
+    -- Thin white-to-accent gradient strokes, matching Lonely Spy's glass panels.
+    if Instance:IsA("UIStroke") and Properties.Color == "OutlineColor" then
+        Instance.Thickness = math.max(Instance.Thickness, 1)
+        Instance.Transparency = 0.24
+
+        local BorderGradient = Instance.new("UIGradient")
+        BorderGradient.Name = "GlassStrokeGradient"
+        BorderGradient.Rotation = 32
+        BorderGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255):Lerp(Library.Scheme.AccentColor, 0.42)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255)),
+        })
+        BorderGradient.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.16),
+            NumberSequenceKeypoint.new(0.5, 0.62),
+            NumberSequenceKeypoint.new(1, 0.22),
+        })
+        BorderGradient.Parent = Instance
+        Library:AddToRegistry(BorderGradient, {
+            Color = function()
+                local White = Color3.fromRGB(255, 255, 255)
+                local Accent = Library.Scheme.AccentColor
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, White),
+                    ColorSequenceKeypoint.new(0.5, White:Lerp(Accent, 0.42)),
+                    ColorSequenceKeypoint.new(1, White),
+                })
+            end,
+        })
+
+        local Parent = Properties.Parent
+        if Parent and Parent:IsA("TextBox") then
+            Parent.Focused:Connect(function()
+                TweenService:Create(Instance, Library.TweenInfo, {
+                    Transparency = 0.08,
+                    Thickness = 1.6,
+                }):Play()
+                TweenService:Create(Parent, Library.TweenInfo, {
+                    BackgroundTransparency = 0.32,
+                }):Play()
+            end)
+            Parent.FocusLost:Connect(function()
+                TweenService:Create(Instance, Library.TweenInfo, {
+                    Transparency = 0.24,
+                    Thickness = 1,
+                }):Play()
+                TweenService:Create(Parent, Library.TweenInfo, {
+                    BackgroundTransparency = 0.50,
+                }):Play()
+            end)
         end
     end
 
@@ -8048,14 +8155,20 @@ do
 
             local Offset = Toggle.Value and 1 or 0
 
-            Switch.BackgroundTransparency = Toggle.Disabled and 0.75 or 0
-            SwitchStroke.Transparency = Toggle.Disabled and 0.75 or 0
+            local White = Color3.fromRGB(255, 255, 255)
+            local OffTrack = Library.Scheme.MainColor:Lerp(White, 0.78)
+            Switch.BackgroundTransparency = Toggle.Disabled and 0.75 or (Toggle.Value and 0.12 or 0.48)
+            SwitchStroke.Transparency = Toggle.Disabled and 0.75 or 0.22
 
-            Switch.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor or Library.Scheme.MainColor
-            SwitchStroke.Color = Toggle.Value and Library.Scheme.AccentColor or Library.Scheme.OutlineColor
+            Switch.BackgroundColor3 = Toggle.Value and Library.Scheme.AccentColor or OffTrack
+            SwitchStroke.Color = Toggle.Value and Library.Scheme.AccentColor or White
 
-            Library.Registry[Switch].BackgroundColor3 = Toggle.Value and "AccentColor" or "MainColor"
-            Library.Registry[SwitchStroke].Color = Toggle.Value and "AccentColor" or "OutlineColor"
+            Library.Registry[Switch].BackgroundColor3 = function()
+                return Toggle.Value and Library.Scheme.AccentColor or Library.Scheme.MainColor:Lerp(White, 0.78)
+            end
+            Library.Registry[SwitchStroke].Color = function()
+                return Toggle.Value and Library.Scheme.AccentColor or White
+            end
 
             if Toggle.Disabled then
                 Label.TextTransparency = 0.8
@@ -8319,8 +8432,16 @@ do
             Box.TextTransparency = Input.Disabled and 0.8 or 0
             BoxStroke.Transparency = Input.Disabled and 0.5 or 0
 
-            Box.BackgroundColor3 = Input.Disabled and Library.Scheme.BackgroundColor or Library.Scheme.MainColor
-            Library.Registry[Box].BackgroundColor3 = Input.Disabled and "BackgroundColor" or "MainColor"
+            local White = Color3.fromRGB(255, 255, 255)
+            Box.BackgroundColor3 = Input.Disabled
+                and Library.Scheme.BackgroundColor:Lerp(White, 0.70)
+                or Library.Scheme.MainColor:Lerp(White, 0.82)
+            Box.BackgroundTransparency = Input.Disabled and 0.65 or 0.50
+            Library.Registry[Box].BackgroundColor3 = function()
+                return Input.Disabled
+                    and Library.Scheme.BackgroundColor:Lerp(White, 0.70)
+                    or Library.Scheme.MainColor:Lerp(White, 0.82)
+            end
         end
 
         function Input:OnChanged(Func)
@@ -12072,37 +12193,55 @@ function Library:CreateWindow(WindowInfo)
         )
         Library:AddOutline(MainFrame)
 
-        -- Violet frosted shell with a restrained neon edge.
-        MainFrame.BackgroundTransparency = 0.20
+        -- Lonely Spy-style frosted shell: soft header band over translucent glass.
+        local GlassWhite = Color3.fromRGB(255, 255, 255)
+        MainFrame.BackgroundColor3 = GlassWhite
+        MainFrame.BackgroundTransparency = 0.22
+        if Library.Registry[MainFrame] then
+            Library.Registry[MainFrame].BackgroundColor3 = function()
+                return Color3.fromRGB(255, 255, 255)
+            end
+        end
         New("UIGradient", {
             Color = function()
-                local Background = Library.Scheme.BackgroundColor
-                local Main = Library.Scheme.MainColor
                 local Accent = Library.Scheme.AccentColor
-                return ColorSequence.new(
-                    Background:Lerp(Accent, 0.20),
-                    Background:Lerp(Main, 0.72)
-                )
+                local White = Color3.fromRGB(255, 255, 255)
+                local HeaderTop = White:Lerp(Accent, 0.08)
+                local HeaderBottom = White:Lerp(Accent, 0.23)
+                local BodyTop = White:Lerp(Accent, 0.035)
+                local BodyBottom = White:Lerp(Library.Scheme.BackgroundColor, 0.16)
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, HeaderTop),
+                    ColorSequenceKeypoint.new(0.055, HeaderBottom),
+                    ColorSequenceKeypoint.new(0.061, BodyTop),
+                    ColorSequenceKeypoint.new(1, BodyBottom),
+                })
             end,
-            Rotation = 135,
+            Rotation = 90,
             Parent = MainFrame,
         })
         local GlassBorder = New("UIStroke", {
-            Color = "AccentColor",
-            Transparency = 0.22,
+            Color = Color3.fromRGB(255, 255, 255),
+            Transparency = 0.18,
             Thickness = 1.35,
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
             Parent = MainFrame,
         })
         New("UIGradient", {
             Color = function()
+                local White = Color3.fromRGB(255, 255, 255)
                 local Accent = Library.Scheme.AccentColor
-                local Outline = Library.Scheme.OutlineColor
-                return ColorSequence.new(
-                    Accent:Lerp(Color3.new(1, 1, 1), 0.16),
-                    Accent:Lerp(Outline, 0.25)
-                )
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, White),
+                    ColorSequenceKeypoint.new(0.5, White:Lerp(Accent, 0.52)),
+                    ColorSequenceKeypoint.new(1, White),
+                })
             end,
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.12),
+                NumberSequenceKeypoint.new(0.5, 0.52),
+                NumberSequenceKeypoint.new(1, 0.16),
+            }),
             Rotation = 25,
             Parent = GlassBorder,
         })
@@ -12484,6 +12623,27 @@ function Library:CreateWindow(WindowInfo)
             PaddingLeft = UDim.new(0, 6),
             PaddingRight = UDim.new(0, 6),
             PaddingTop = UDim.new(0, 0),
+            Parent = Container,
+        })
+
+        -- The content canvas is a translucent glass layer, not an opaque dark slab.
+        Container.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Container.BackgroundTransparency = 0.54
+        if Library.Registry[Container] then
+            Library.Registry[Container].BackgroundColor3 = function()
+                return Color3.fromRGB(255, 255, 255)
+            end
+        end
+        New("UIGradient", {
+            Color = function()
+                local White = Color3.fromRGB(255, 255, 255)
+                local Accent = Library.Scheme.AccentColor
+                return ColorSequence.new(
+                    White:Lerp(Accent, 0.025),
+                    White:Lerp(Library.Scheme.BackgroundColor, 0.13)
+                )
+            end,
+            Rotation = 90,
             Parent = Container,
         })
 
@@ -13802,14 +13962,11 @@ function Library:CreateWindow(WindowInfo)
                 Library:AddOutline(GroupboxHolder)
                 New("UIGradient", {
                     Color = function()
-                        local Background = Library.Scheme.BackgroundColor
-                        local Main = Library.Scheme.MainColor
+                        local White = Color3.fromRGB(255, 255, 255)
                         local Accent = Library.Scheme.AccentColor
-                        local Surface = Background:Lerp(Main, 0.48)
-                        return ColorSequence.new(
-                            Surface:Lerp(Accent, 0.08),
-                            Surface:Lerp(Accent, 0.025)
-                        )
+                        local Top = White:Lerp(Accent, 0.055)
+                        local Bottom = White:Lerp(Library.Scheme.MainColor, 0.14)
+                        return ColorSequence.new(Top, Bottom)
                     end,
                     Rotation = 90,
                     Parent = GroupboxHolder,
