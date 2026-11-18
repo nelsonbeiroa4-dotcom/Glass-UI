@@ -172,7 +172,7 @@ end
 
 local Library = {
     Name = "Glass UI",
-    Version = "0.3.5",
+    Version = "0.3.6",
     LocalPlayer = LocalPlayer,
     IsRobloxFocused = true,
 
@@ -1712,7 +1712,52 @@ function Library:GetCustomIcon(IconName: string): any
         return LucideIcon
     end
 
-    return nil
+    -- Last-resort font glyphs keep navigation and groupbox icons visible offline.
+    local FallbackGlyphs = {
+        ["house"] = "⌂",
+        ["user-round"] = "♙",
+        ["user"] = "♙",
+        ["eye"] = "◉",
+        ["layers"] = "▤",
+        ["settings"] = "⚙",
+        ["settings-2"] = "⚙",
+        ["sliders-horizontal"] = "☷",
+        ["crown"] = "♛",
+        ["info"] = "ⓘ",
+        ["megaphone"] = "◁",
+        ["scroll"] = "▤",
+        ["circle-dot"] = "⦿",
+        ["person-standing"] = "♟",
+        ["users"] = "♟",
+        ["toggle-right"] = "◉",
+        ["camera"] = "◎",
+        ["file-image"] = "▧",
+        ["mouse-pointer-2"] = "↖",
+        ["cloudy"] = "☁",
+        ["gauge"] = "◴",
+        ["activity"] = "∿",
+        ["check-circle"] = "✓",
+        ["alert-circle"] = "!",
+        ["triangle-alert"] = "⚠",
+        ["bell"] = "♢",
+        ["wand-sparkles"] = "✧",
+        ["crosshair"] = "⊕",
+        ["palette"] = "◒",
+        ["footprints"] = "⋅",
+        ["map-pin"] = "⌖",
+        ["copy"] = "▢",
+        ["user-plus"] = "♙+",
+        ["user-minus"] = "♙−",
+        ["volume-2"] = "◖",
+        ["scroll-text"] = "▤",
+    }
+
+    local NormalizedName = string.lower(tostring(IconName))
+    local Glyph = FallbackGlyphs[NormalizedName] or "◇"
+    return {
+        FontFace = Font.fromEnum(Enum.Font.GothamBold),
+        Text = Glyph,
+    }
 end
 
 function Library:Validate(Table: { [string]: any }, Template: { [string]: any }): { [string]: any }
@@ -2108,26 +2153,94 @@ function Library:SetIconModule(module: IconModule)
     SettingsIcon = Library:GetIcon("settings")
 end
 
-local OnlineFetchIcons, OnlineIcons = pcall(function()
-    return (loadstring(
-        game:HttpGet("https://raw.githubusercontent.com/notpoiu/Molto/refs/heads/main/source.lua")
-    ) :: () -> IconModule)()
-end)
-do
-    if OnlineFetchIcons and OnlineIcons then
-        OnlineIcons.SetProvider("lucide")
-        Library:SetIconModule(OnlineIcons)
-    else
-        OnlineFetchIcons, OnlineIcons = pcall(function()
-            return (loadstring(
-                game:HttpGet("https://raw.githubusercontent.com/notpoiu/lucide-roblox-direct/refs/heads/main/source.lua")
-            ) :: () -> IconModule)()
-        end)
-        
-        if OnlineFetchIcons and OnlineIcons then
-            Library:SetIconModule(OnlineIcons)
+--// Reliable icon providers
+-- Prefer the original provider, validate it, then try two independent data providers.
+local function TryInstallIconModule(Module, ConfigureLucide: boolean?): boolean
+    if typeof(Module) ~= "table" or typeof(Module.GetAsset) ~= "function" then
+        return false
+    end
+
+    if ConfigureLucide and typeof(Module.SetProvider) == "function" then
+        local Configured = pcall(Module.SetProvider, "lucide")
+        if not Configured then
+            return false
         end
     end
+
+    local Success, TestIcon = pcall(Module.GetAsset, "house")
+    if not Success or typeof(TestIcon) ~= "table" then
+        return false
+    end
+
+    local Installed = pcall(function()
+        Library:SetIconModule(Module)
+    end)
+    return Installed
+end
+
+local function FetchIconModule(URL: string)
+    local Success, Result = pcall(function()
+        local Source = game:HttpGet(URL)
+        assert(typeof(Source) == "string" and #Source > 0, "Icon source is empty")
+        local Chunk, CompileError = loadstring(Source)
+        assert(typeof(Chunk) == "function", CompileError or "Icon source did not compile")
+        return Chunk()
+    end)
+
+    if Success then
+        return Result
+    end
+
+    warn("[Glass UI] Icon provider failed:", tostring(Result))
+    return nil
+end
+
+local IconsReady = false
+
+local MoltoIcons = FetchIconModule("https://raw.githubusercontent.com/notpoiu/Molto/refs/heads/main/source.lua")
+if MoltoIcons then
+    IconsReady = TryInstallIconModule(MoltoIcons, true)
+end
+
+if not IconsReady then
+    local DirectIcons = FetchIconModule("https://raw.githubusercontent.com/notpoiu/lucide-roblox-direct/refs/heads/main/source.lua")
+    if DirectIcons then
+        IconsReady = TryInstallIconModule(DirectIcons, false)
+    end
+end
+
+if not IconsReady then
+    -- Static Lucide atlas metadata: no additional Lua module API is required.
+    local AtlasData = FetchIconModule("https://raw.githubusercontent.com/latte-soft/lucide-roblox/refs/heads/master/lib/Icons.luau")
+    local Atlas48 = typeof(AtlasData) == "table" and AtlasData["48px"] or nil
+
+    if typeof(Atlas48) == "table" then
+        local AtlasModule = { Icons = {} }
+        for Name in pairs(Atlas48) do
+            table.insert(AtlasModule.Icons, Name)
+        end
+
+        function AtlasModule.GetAsset(Name: string)
+            local Entry = Atlas48[Name]
+            if typeof(Entry) ~= "table" or typeof(Entry[1]) ~= "number" then
+                return nil
+            end
+
+            return {
+                IconName = Name,
+                Url = string.format("rbxassetid://%s", tostring(Entry[1])),
+                ImageRectSize = Vector2.new(Entry[2][1], Entry[2][2]),
+                ImageRectOffset = Vector2.new(Entry[3][1], Entry[3][2]),
+            }
+        end
+
+        IconsReady = TryInstallIconModule(AtlasModule, false)
+    end
+end
+
+Library.IconsReady = IconsReady
+if not IconsReady then
+    warn("[Glass UI] Remote icon providers unavailable; using built-in glyph fallbacks.")
 end
 
 --// Lib Functions \\--

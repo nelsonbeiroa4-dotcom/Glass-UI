@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.6
+
+- Replaced the fragile icon bootstrap with validated provider loading and fallbacks.
+- Added a direct Lucide atlas metadata provider as a third option.
+- Added built-in font-glyph fallbacks so tab and groupbox icons remain visible when remote icon sources are unavailable.
+- Exposed `Library.IconsReady` for startup diagnostics.
+
+# Changelog
+
 ## 0.3.5
 
 - Reverted the fragile inline v0.3.4 glass-constructor hooks to the previously working 0.3.3 core, preserving Obsidian's original control creation path.

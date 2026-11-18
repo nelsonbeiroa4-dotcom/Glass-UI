@@ -2,9 +2,10 @@
 
 ## Base
 
-Glass UI v0.3.5 uses the upstream Obsidian Library source as its core rather than the previous hand-built GUI. It inherits the upstream architecture for:
+Glass UI v0.3.6 uses the upstream Obsidian Library source as its core rather than the previous hand-built GUI. It inherits the upstream architecture for:
 
 - Window creation, resizing, dragging, visibility, compactable/resizable sidebar and snapping.
+- Icon loading with three remote providers and offline font-glyph fallback.
 - Tabs, key tabs, tabboxes, groupboxes, nested groupboxes and pop-out groupboxes.
 - Search, dependencies and visibility state.
 - Buttons, toggles, checkboxes, labels, dividers, inputs, sliders, dropdowns, color pickers and key pickers.
