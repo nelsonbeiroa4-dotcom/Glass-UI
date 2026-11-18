@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.5
+
+- Reverted the fragile inline v0.3.4 glass-constructor hooks to the previously working 0.3.3 core, preserving Obsidian's original control creation path.
+- Kept executor blur opt-out support for scripts that supply their own local glass effect.
+- Glass styling is applied by the Lonely script in a protected descendant-style layer so optional visual failures cannot interrupt UI construction.
+
 ## 0.3.4
 
 - Reworked the glass skin to follow the glass surfaces used in Lonely Spy: translucent pale panels, soft white/accent strokes and responsive controls.
